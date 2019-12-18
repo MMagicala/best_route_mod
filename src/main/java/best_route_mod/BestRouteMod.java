@@ -29,14 +29,26 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     @Override
     public void receivePostUpdate() {
         if(AbstractDungeon.currMapNode != null && !printedMap) {
-            ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
+            ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(1);
+            getConnectedNodesOnTop(startingNodes.get(0));
+            /*
             for(MapRoomNode startingNode: startingNodes){
                 startingNode.
             }
+*/
             //System.out.println("Num of edges: " + AbstractDungeon.currMapNode.getEdges().size());
             //AbstractDungeon.currMapNode.getEdges().forEach((edge -> printEdge(edge)));
             printedMap = true;
         }
+    }
+
+    private int traverseRecur(int num_rest_sites){
+        return
+    }
+
+    private void getConnectedNodesOnTop(MapRoomNode node){
+        ArrayList<MapEdge> mapEdges = node.getEdges();
+        mapEdges.forEach(mapEdge -> printEdge(mapEdge));
     }
 
     private void printNode(MapRoomNode node){
