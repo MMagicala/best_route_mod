@@ -13,9 +13,15 @@ import java.util.ArrayList;
 
 @SpireInitializer
 public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, basemod.interfaces.StartActSubscriber  {
+    // 0,-1 node is whale
+    private ArrayList<MapRoomNode> bestPath;
+
     public BestRouteMod() {
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
+
+        // Initialize variables
+        bestPath = new ArrayList<MapRoomNode>();
     }
 
     public static void initialize() {
@@ -24,32 +30,36 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
 
     boolean printedMap = false;
 
-    // 0,-1 node is whale
-
     @Override
     public void receivePostUpdate() {
         if(AbstractDungeon.currMapNode != null && !printedMap) {
             ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(1);
-            getConnectedNodesOnTop(startingNodes.get(0));
-            /*
+
             for(MapRoomNode startingNode: startingNodes){
-                startingNode.
+                findBestPathRecur(startingNode);
             }
-*/
+
             //System.out.println("Num of edges: " + AbstractDungeon.currMapNode.getEdges().size());
             //AbstractDungeon.currMapNode.getEdges().forEach((edge -> printEdge(edge)));
             printedMap = true;
         }
     }
 
-    private int traverseRecur(int num_rest_sites){
-        return
+    private ArrayList<MapRoomNode> findBestPathRecur(MapRoomNode node){
+
     }
 
-    private void getConnectedNodesOnTop(MapRoomNode node){
+    // TODO: make sure it only gets the edges moving upwards
+    private ArrayList<MapRoomNode> getConnectedNodesOnTop(MapRoomNode node){
         ArrayList<MapEdge> mapEdges = node.getEdges();
         mapEdges.forEach(mapEdge -> printEdge(mapEdge));
     }
+
+    private MapRoomNode getNodeAtCoordinates(int x, int y){
+        return AbstractDungeon.map.get(y+1).get(x);
+    }
+
+    // Debug functions
 
     private void printNode(MapRoomNode node){
         System.out.print("(" + node.x + "," + node.y + ") ");
