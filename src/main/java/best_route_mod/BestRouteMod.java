@@ -32,6 +32,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     @Override
     public void receiveStartAct() {
         printedMap = false;
+
     }
 
     // 0,-1 node is whale
@@ -54,26 +55,37 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
             }
 
             // Print for debug
-            bestPath.printPath();
+            // printDungeon();
+            // bestPath.printPath();
 
             // Color the edges in the map
-/*
             ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
             for(int i = 0; i < bestPathNodeList.size()-1; i++){
                 colorEdgeInMap(bestPathNodeList.get(i), bestPathNodeList.get(i+1));
             }
-*/
             printedMap = true;
         }
     }
 
     private void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
-/*
-        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x) == null);
+
+        /*System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x) == null);
         System.out.println(AbstractDungeon.map.get(destNode.y).get(destNode.x) == null);
-        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)) == null);
-*/
-        AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = Color.CYAN;
+        System.out.print("Coloring ");
+        printNode(srcNode);
+        System.out.print(" to ");
+        printNode(destNode);
+        System.out.println();
+        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)) != null);
+        */
+        if(srcNode.y == 0){
+            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).markAsTaken();
+            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).color = Color.RED;
+        }else{
+            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
+            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = Color.RED;
+        }
+
     }
 
     private ArrayList<MapRoomNode> getStartingNodes(){
@@ -114,17 +126,40 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     }
 
     public MapRoomNode getNodeAtCoordinates(int x, int y){
+        if(y == 0){
+            return AbstractDungeon.map.get(y).get(getArrayIndexOfXCoordinate(x));
+        }
         return AbstractDungeon.map.get(y).get(x);
+    }
+
+    // THe first row of nodes have x-coordinates different from their array indices
+    // So we have to loop through the first row to find the correct node
+    private int getArrayIndexOfXCoordinate(int x){
+        for(int i = 0; i < AbstractDungeon.map.get(0).size(); i++){
+            MapRoomNode node = AbstractDungeon.map.get(0).get(i);
+            if(node.x == x){
+                return i;
+            }
+        }
+        return -1;
     }
 
     // Debug functions
 
-    public static void printNode(MapRoomNode node){
-        System.out.print("(" + node.x + "," + node.y + ")");
+    public static String printNode(MapRoomNode node){
+        return ("(" + node.x + "," + node.y + ")");
     }
 
-    public static void printEdge(MapEdge edge){
-        System.out.print("(" + edge.srcX + "," + edge.srcY + ") -> (" + edge.dstX + "," + edge.dstY + ")");
+    public static String printEdge(MapEdge edge){
+        return ("(" + edge.srcX + "," + edge.srcY + ") -> (" + edge.dstX + "," + edge.dstY + ")");
     }
 
+    public void printDungeon(){
+        for(ArrayList<MapRoomNode> list: AbstractDungeon.map){
+            for(MapRoomNode node: list){
+                System.out.print(printNode(node) + " ");
+            }
+            System.out.println();
+        }
+    }
 }

@@ -45,20 +45,17 @@ public class MapPath {
     public void printPath(){
         System.out.println("Best path has " + numCampSites + ":");
         for(int i = 0; i <= path.size()-1; i++){
-            System.out.print("Node ");
-            BestRouteMod.printNode(path.get(i));
+            System.out.print("Node " + BestRouteMod.printNode(path.get(i)));
             if(path.get(i).room instanceof RestRoom) System.out.print(" - Rest site ");
             if(i != path.size() - 1){
-                System.out.println("- Path exists to " + path.get(i+1) + "? " + (AbstractDungeon.map.get(path.get(i).y).get(path.get(i).x).getEdgeConnectedTo(AbstractDungeon.map.get(path.get(i+1).y).get(path.get(i+1).x)) == null));
+                System.out.print("- Path exists to " + BestRouteMod.printNode(path.get(i+1)));
+                System.out.print("? " + (AbstractDungeon.map.get(path.get(i).y).get(path.get(i).x).getEdgeConnectedTo(AbstractDungeon.map.get(path.get(i+1).y).get(path.get(i+1).x)) != null));
                 System.out.print("\nList of available edges: ");
-                path.get(i).getEdges().forEach((mapEdge -> {
-                    BestRouteMod.printEdge(mapEdge);
-                    System.out.print(" ");
+                AbstractDungeon.map.get(path.get(i).y).get(path.get(i).x).getEdges().forEach((mapEdge -> {
+                    System.out.print(BestRouteMod.printEdge(mapEdge) + " ");
                 }));
-                System.out.println();
-            }else{
-                System.out.println();
             }
+            System.out.println();
         }
     }
 
