@@ -8,8 +8,14 @@ public class MapPath {
     private int numCampSites;
     private ArrayList<MapRoomNode> path;
 
-    public MapPath(MapRoomNode node){
+    public MapPath(){
+        this(new ArrayList<MapRoomNode>(), 0);
+    }
 
+    public MapPath(MapRoomNode node, int numCampSites){
+        path = new ArrayList<MapRoomNode>();
+        path.add(node);
+        this.numCampSites = numCampSites;
     }
 
     public MapPath(ArrayList<MapRoomNode> path, int numCampSites){

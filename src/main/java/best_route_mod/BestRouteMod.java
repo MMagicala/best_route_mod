@@ -65,9 +65,10 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     private MapPath traverseInDepthOrder(MapRoomNode node) {
         printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
-        if(adjacentNodesAboveGivenNode.isEmpty()) return;
+        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1);
         for(MapRoomNode adjacentNode: adjacentNodesAboveGivenNode){
-            traverseInDepthOrder(adjacentNode);
+            ArrayList<MapRoomNode> pathFromNode = traverseInDepthOrder(adjacentNode);
+            // TODO: do rest site comparisons here
         }
     }
 
