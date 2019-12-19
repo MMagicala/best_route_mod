@@ -9,6 +9,7 @@ import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
 import com.megacrit.cardcrawl.rooms.MonsterRoomBoss;
+import com.megacrit.cardcrawl.rooms.RestRoom;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -66,10 +67,17 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1);
+        MapPath bestPath = new MapPath();
         for(MapRoomNode adjacentNode: adjacentNodesAboveGivenNode){
-            ArrayList<MapRoomNode> pathFromNode = traverseInDepthOrder(adjacentNode);
-            // TODO: do rest site comparisons here
+            MapPath pathFromNode = traverseInDepthOrder(adjacentNode);
+            // Compare number of rest sites for paths
+            if(bestPath.isEmpty() || bestPath.getNumCampSites() < pathFromNode.getNumCampSites()){
+                bestPath = pathFromNode;
+            }
         }
+        bestPath.pushNodeToFrontOfPath(node);
+        if(node.room instanceof RestRoom) bestPath.incrementNumCampSites();
+        return bestPath;
     }
 
     private ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node){
