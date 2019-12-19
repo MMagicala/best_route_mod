@@ -3,6 +3,7 @@ package best_route_mod;
 import basemod.BaseMod;
 import basemod.interfaces.OnStartBattleSubscriber;
 import basemod.interfaces.StartActSubscriber;
+import com.badlogic.gdx.graphics.Color;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
@@ -51,9 +52,28 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
                     }
                 }
             }
+
+            // Print for debug
             bestPath.printPath();
+
+            // Color the edges in the map
+/*
+            ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
+            for(int i = 0; i < bestPathNodeList.size()-1; i++){
+                colorEdgeInMap(bestPathNodeList.get(i), bestPathNodeList.get(i+1));
+            }
+*/
             printedMap = true;
         }
+    }
+
+    private void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
+/*
+        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x) == null);
+        System.out.println(AbstractDungeon.map.get(destNode.y).get(destNode.x) == null);
+        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)) == null);
+*/
+        AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = Color.CYAN;
     }
 
     private ArrayList<MapRoomNode> getStartingNodes(){
@@ -93,17 +113,17 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         return adjacentNodesAboveGivenNode;
     }
 
-    private MapRoomNode getNodeAtCoordinates(int x, int y){
+    public MapRoomNode getNodeAtCoordinates(int x, int y){
         return AbstractDungeon.map.get(y).get(x);
     }
 
     // Debug functions
 
-    private void printNode(MapRoomNode node){
-        System.out.print("Node (" + node.x + "," + node.y + ") ");
+    public static void printNode(MapRoomNode node){
+        System.out.print("(" + node.x + "," + node.y + ")");
     }
 
-    private void printEdge(MapEdge edge){
+    public static void printEdge(MapEdge edge){
         System.out.print("(" + edge.srcX + "," + edge.srcY + ") -> (" + edge.dstX + "," + edge.dstY + ")");
     }
 

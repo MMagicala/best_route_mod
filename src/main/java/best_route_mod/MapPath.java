@@ -1,8 +1,10 @@
 package best_route_mod;
 
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.RestRoom;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MapPath {
@@ -42,10 +44,21 @@ public class MapPath {
 
     public void printPath(){
         System.out.println("Best path has " + numCampSites + ":");
-        for(MapRoomNode node: path){
-            System.out.print("Node (" + node.x + "," + node.y + ") ");
-            if(node.room instanceof RestRoom) System.out.print("rest site");
-            System.out.println();
+        for(int i = 0; i <= path.size()-1; i++){
+            System.out.print("Node ");
+            BestRouteMod.printNode(path.get(i));
+            if(path.get(i).room instanceof RestRoom) System.out.print(" - Rest site ");
+            if(i != path.size() - 1){
+                System.out.println("- Path exists to " + path.get(i+1) + "? " + (AbstractDungeon.map.get(path.get(i).y).get(path.get(i).x).getEdgeConnectedTo(AbstractDungeon.map.get(path.get(i+1).y).get(path.get(i+1).x)) == null));
+                System.out.print("\nList of available edges: ");
+                path.get(i).edge
+            }else{
+                System.out.println();
+            }
         }
+    }
+
+    public ArrayList<MapRoomNode> getListOfNodes(){
+        return path;
     }
 }
