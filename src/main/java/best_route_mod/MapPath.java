@@ -51,7 +51,11 @@ public class MapPath {
             if(i != path.size() - 1){
                 System.out.println("- Path exists to " + path.get(i+1) + "? " + (AbstractDungeon.map.get(path.get(i).y).get(path.get(i).x).getEdgeConnectedTo(AbstractDungeon.map.get(path.get(i+1).y).get(path.get(i+1).x)) == null));
                 System.out.print("\nList of available edges: ");
-                path.get(i).edge
+                path.get(i).getEdges().forEach((mapEdge -> {
+                    BestRouteMod.printEdge(mapEdge);
+                    System.out.print(" ");
+                }));
+                System.out.println();
             }else{
                 System.out.println();
             }
