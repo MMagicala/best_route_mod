@@ -64,7 +64,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
 
     // Travel all the nodes on the map (except for the boss node)
     private MapPath traverseInDepthOrder(MapRoomNode node) {
-        printNode(node);
+        // printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1);
         MapPath bestPath = new MapPath();
@@ -100,7 +100,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     // Debug functions
 
     private void printNode(MapRoomNode node){
-        System.out.println("Node (" + node.x + "," + node.y + ") ");
+        System.out.print("Node (" + node.x + "," + node.y + ") ");
     }
 
     private void printEdge(MapEdge edge){

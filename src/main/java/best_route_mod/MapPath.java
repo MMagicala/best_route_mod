@@ -1,6 +1,7 @@
 package best_route_mod;
 
 import com.megacrit.cardcrawl.map.MapRoomNode;
+import com.megacrit.cardcrawl.rooms.RestRoom;
 
 import java.util.ArrayList;
 
@@ -40,9 +41,11 @@ public class MapPath {
     }
 
     public void printPath(){
-        System.out.println("Best path:");
+        System.out.println("Best path has " + numCampSites + ":");
         for(MapRoomNode node: path){
-            System.out.println("Node (" + node.x + "," + node.y + ") ");
+            System.out.print("Node (" + node.x + "," + node.y + ") ");
+            if(node.room instanceof RestRoom) System.out.print("rest site");
+            System.out.println();
         }
     }
 }
