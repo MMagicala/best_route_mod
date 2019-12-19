@@ -8,6 +8,7 @@ import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.AbstractRoom;
+import com.megacrit.cardcrawl.rooms.MonsterRoomBoss;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -37,15 +38,31 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     public void receivePostUpdate() {
         if(AbstractDungeon.currMapNode != null && !printedMap) {
             // Start traversal code
-            ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
+            ArrayList<MapRoomNode> startingNodes = getStartingNodes();
+            MapPath bestPath = new MapPath();
             for(MapRoomNode startingNode: startingNodes){
-                traverseInDepthOrder(startingNode);
+                if(bestPath.isEmpty()){
+                    bestPath = traverseInDepthOrder(startingNode);
+                }else{
+                    MapPath currentPath = traverseInDepthOrder(startingNode);
+                    if(bestPath.getNumCampSites() < currentPath.getNumCampSites()){
+                        bestPath = currentPath;
+                    }
+                }
             }
+            bestPath.printPath();
             printedMap = true;
         }
     }
 
-    private void traverseInDepthOrder(MapRoomNode node) {
+    private ArrayList<MapRoomNode> getStartingNodes(){
+        ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
+        startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
+        return startingNodes;
+    }
+
+    // Travel all the nodes on the map (except for the boss node)
+    private MapPath traverseInDepthOrder(MapRoomNode node) {
         printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         if(adjacentNodesAboveGivenNode.isEmpty()) return;
@@ -54,15 +71,15 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         }
     }
 
-    private boolean nodeAtLastLevel(MapRoomNode node){
-        if(node.x)
-    }
-
     private ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node){
         ArrayList<MapEdge> mapEdges = node.getEdges();
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = new ArrayList<MapRoomNode>();
         mapEdges.forEach(mapEdge -> {
-            adjacentNodesAboveGivenNode.add(getNodeAtCoordinates(mapEdge.dstX, mapEdge.dstY));
+            // The boss node is 2 levels above the last rest site nodes, don't count it since we can't access it on the
+            // AbstractDungeon.map object
+            if(mapEdge.dstY - node.y == 1){
+                adjacentNodesAboveGivenNode.add(getNodeAtCoordinates(mapEdge.dstX, mapEdge.dstY));
+            }
         });
         return adjacentNodesAboveGivenNode;
     }
@@ -76,7 +93,6 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     private void printNode(MapRoomNode node){
         System.out.println("Node (" + node.x + "," + node.y + ") ");
     }
-
 
     private void printEdge(MapEdge edge){
         System.out.print("(" + edge.srcX + "," + edge.srcY + ") -> (" + edge.dstX + "," + edge.dstY + ")");
