@@ -9,25 +9,34 @@ import java.util.ArrayList;
 
 public class MapPath {
     private int numCampSites;
+
+    public int getNumElites() {
+        return numElites;
+    }
+
+    private int numElites;
     private ArrayList<MapRoomNode> path;
 
     public MapPath(){
-        this(new ArrayList<MapRoomNode>(), 0);
+        this(new ArrayList<MapRoomNode>(), 0, 0);
     }
 
-    public MapPath(MapRoomNode node, int numCampSites){
-        path = new ArrayList<MapRoomNode>();
-        path.add(node);
-        this.numCampSites = numCampSites;
+    public MapPath(MapRoomNode node, int numCampSites, int numElites){
+        this(new ArrayList<MapRoomNode>(){{add(node);}}, numCampSites, numElites);
     }
 
-    public MapPath(ArrayList<MapRoomNode> path, int numCampSites){
+    public MapPath(ArrayList<MapRoomNode> path, int numCampSites, int numElites){
         this.path = path;
         this.numCampSites = numCampSites;
+        this.numElites = numElites;
     }
 
     public void incrementNumCampSites(){
         numCampSites++;
+    }
+
+    public void incrementNumElites(){
+        numElites++;
     }
 
     public void pushNodeToFrontOfPath(MapRoomNode node){

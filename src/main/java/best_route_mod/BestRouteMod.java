@@ -33,19 +33,22 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     @Override
     public void receiveStartAct() {
         foundBestPath = false;
-
-        roomPriority.add(RestRoom.class);
-        roomPriority.add(TreasureRoom.class);
-        roomPriority.add(MonsterRoomElite.class);
     }
 
     private ArrayList<Class> roomPriority;
-    
+
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
     @Override
     public void receivePostUpdate() {
+        if(roomPriority == null) {
+            roomPriority = new ArrayList<Class>() {{
+                add(RestRoom.class);
+                add(MonsterRoomElite.class);
+            }};
+        }
+
         if(AbstractDungeon.currMapNode != null && !foundBestPath) {
             // Start traversal code
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
@@ -57,9 +60,20 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
                     MapPath currentPath = traverseInDepthOrder(startingNode);
                     // Perform comparisons using the order of priority
                     for(Class roomType: roomPriority){
-                        if(roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites()){
+                        boolean pathReplacesOldOne = (roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites())
+                                || (roomType == MonsterRoomElite.class && currentPath.getNumElites() > bestPath.getNumElites());
+                        boolean lookForNextCriteriaToTest = (roomType == RestRoom.class && currentPath.getNumCampSites() == bestPath.getNumCampSites())
+                                || (roomType == MonsterRoomElite.class && currentPath.getNumElites() == bestPath.getNumElites());
+                        if(pathReplacesOldOne){
                             bestPath = currentPath;
-                        }else if(roomType == TreasureRoom.class && currentPath.getNumTreasureRooms() > )
+                            break;
+                        }
+                        if(lookForNextCriteriaToTest){
+                            // Room has the same value for this criteria, move on to next criteria to test
+                            continue;
+                        }
+                        // Room does not meet the criteria to replace the old one, exit
+                        break;
                     }
                 }
             }
@@ -108,17 +122,35 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     private MapPath traverseInDepthOrder(MapRoomNode node) {
         // printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
-        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1);
+        // Last node will always be a campfire
+        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1, 0);
         MapPath bestPath = new MapPath();
         for(MapRoomNode adjacentNode: adjacentNodesAboveGivenNode){
-            MapPath pathFromNode = traverseInDepthOrder(adjacentNode);
+            MapPath currentPath = traverseInDepthOrder(adjacentNode);
             // Compare number of rest sites for paths
-            if(bestPath.isEmpty() || bestPath.getNumCampSites() < pathFromNode.getNumCampSites()){
-                bestPath = pathFromNode;
+            // Perform comparisons using the order of priority
+            for(Class roomType: roomPriority){
+                boolean pathReplacesOldOne = (roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites())
+                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() > bestPath.getNumElites());
+                boolean lookForNextCriteriaToTest = (roomType == RestRoom.class && currentPath.getNumCampSites() == bestPath.getNumCampSites())
+                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() == bestPath.getNumElites());
+                if(bestPath.isEmpty() || pathReplacesOldOne){
+                    bestPath = currentPath;
+                    break;
+                }
+                if(lookForNextCriteriaToTest){
+                    // Room has the same value for this criteria, move on to next criteria to test
+                    continue;
+                }
+                // Room does not meet the criteria to replace the old one, exit
+                break;
             }
         }
         bestPath.pushNodeToFrontOfPath(node);
+
         if(node.room instanceof RestRoom) bestPath.incrementNumCampSites();
+        else if(node.room instanceof MonsterRoomElite) bestPath.incrementNumElites();
+
         return bestPath;
     }
 
