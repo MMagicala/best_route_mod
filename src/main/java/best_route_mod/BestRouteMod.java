@@ -2,6 +2,7 @@ package best_route_mod;
 
 import basemod.BaseMod;
 import basemod.interfaces.OnStartBattleSubscriber;
+import basemod.interfaces.PostUpdateSubscriber;
 import basemod.interfaces.StartActSubscriber;
 import com.badlogic.gdx.graphics.Color;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Queue;
 
 @SpireInitializer
-public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, basemod.interfaces.StartActSubscriber {
+public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     public BestRouteMod() {
         BaseMod.subscribe(this);
@@ -33,14 +34,12 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         foundBestPath = false;
     }
 
-    private ArrayList<Class> roomPriority;
-
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
     @Override
     public void receivePostUpdate() {
-        if(roomPriority == null) {
+        if(criteriaList == null) {
             roomPriority = new ArrayList<Class>() {{
                 add(RestRoom.class);
                 add(MonsterRoomElite.class);
@@ -82,10 +81,14 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         return startingNodes;
     }
 
+    private ArrayList<Criterium> criteriaList;
+
     private MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes){
         MapPath bestPath = new MapPath();
         for(MapRoomNode node: nodes){
             MapPath currentPath = traverseInDepthOrder(node);
+            // First check if there is a neow's lament
+
             // Compare number of rest sites for paths
             // Perform comparisons using the order of priority
             for(Class roomType: roomPriority){
