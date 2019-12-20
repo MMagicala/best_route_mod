@@ -8,15 +8,14 @@ import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
-import com.megacrit.cardcrawl.rooms.AbstractRoom;
-import com.megacrit.cardcrawl.rooms.MonsterRoomBoss;
-import com.megacrit.cardcrawl.rooms.RestRoom;
+import com.megacrit.cardcrawl.rooms.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Queue;
 
 @SpireInitializer
-public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, basemod.interfaces.StartActSubscriber  {
+public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, basemod.interfaces.StartActSubscriber {
 
     public BestRouteMod() {
         BaseMod.subscribe(this);
@@ -27,19 +26,27 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         new BestRouteMod();
     }
 
-    boolean printedMap = false;
+    boolean foundBestPath = false;
+
+    // TODO: update the path once current node changes
 
     @Override
     public void receiveStartAct() {
-        printedMap = false;
+        foundBestPath = false;
 
+        roomPriority.add(RestRoom.class);
+        roomPriority.add(TreasureRoom.class);
+        roomPriority.add(MonsterRoomElite.class);
     }
 
+    private ArrayList<Class> roomPriority;
+    
+    // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
     @Override
     public void receivePostUpdate() {
-        if(AbstractDungeon.currMapNode != null && !printedMap) {
+        if(AbstractDungeon.currMapNode != null && !foundBestPath) {
             // Start traversal code
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
             MapPath bestPath = new MapPath();
@@ -48,8 +55,11 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
                     bestPath = traverseInDepthOrder(startingNode);
                 }else{
                     MapPath currentPath = traverseInDepthOrder(startingNode);
-                    if(bestPath.getNumCampSites() < currentPath.getNumCampSites()){
-                        bestPath = currentPath;
+                    // Perform comparisons using the order of priority
+                    for(Class roomType: roomPriority){
+                        if(roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites()){
+                            bestPath = currentPath;
+                        }else if(roomType == TreasureRoom.class && currentPath.getNumTreasureRooms() > )
                     }
                 }
             }
@@ -63,7 +73,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
             for(int i = 0; i < bestPathNodeList.size()-1; i++){
                 colorEdgeInMap(bestPathNodeList.get(i), bestPathNodeList.get(i+1));
             }
-            printedMap = true;
+            foundBestPath = true;
         }
     }
 

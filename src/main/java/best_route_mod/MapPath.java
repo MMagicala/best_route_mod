@@ -42,6 +42,7 @@ public class MapPath {
         return numCampSites;
     }
 
+    // Dont use, broken
     public void printPath(){
         System.out.println("Best path has " + numCampSites + ":");
         for(int i = 0; i <= path.size()-1; i++){
