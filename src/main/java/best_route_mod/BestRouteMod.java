@@ -29,6 +29,7 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     boolean foundBestPath = false;
 
+    // Find the new best path for each act
     @Override
     public void receiveStartAct() {
         foundBestPath = false;
@@ -39,10 +40,11 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     @Override
     public void receivePostUpdate() {
+        // Statically create criteria list
         if(criteriaList == null) {
-            roomPriority = new ArrayList<Class>() {{
-                add(RestRoom.class);
-                add(MonsterRoomElite.class);
+            criteriaList = new ArrayList<Criterium>() {{
+                add(new Criterium(RestRoom.class, SignOperator.GREATER));
+                add(new Criterium(MonsterRoomElite.class, SignOperator.LESS));
             }};
         }
 
@@ -87,15 +89,8 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         MapPath bestPath = new MapPath();
         for(MapRoomNode node: nodes){
             MapPath currentPath = traverseInDepthOrder(node);
-            // First check if there is a neow's lament
+            for(Criterium criterium: criteriaList){
 
-            // Compare number of rest sites for paths
-            // Perform comparisons using the order of priority
-            for(Class roomType: roomPriority){
-                boolean pathReplacesOldOne = (roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites())
-                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() < bestPath.getNumElites());
-                boolean lookForNextCriteriaToTest = (roomType == RestRoom.class && currentPath.getNumCampSites() == bestPath.getNumCampSites())
-                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() == bestPath.getNumElites());
                 if(bestPath.isEmpty() || pathReplacesOldOne){
                     bestPath = currentPath;
                     break;
