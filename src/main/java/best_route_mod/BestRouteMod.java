@@ -66,15 +66,6 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     }
 
     private void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
-        /*System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x) == null);
-        System.out.println(AbstractDungeon.map.get(destNode.y).get(destNode.x) == null);
-        System.out.print("Coloring ");
-        printNode(srcNode);
-        System.out.print(" to ");
-        printNode(destNode);
-        System.out.println();
-        System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)) != null);
-        */
         if(srcNode.y == 0){
             AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).markAsTaken();
             AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).color = Color.RED;
@@ -99,7 +90,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
             // Perform comparisons using the order of priority
             for(Class roomType: roomPriority){
                 boolean pathReplacesOldOne = (roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites())
-                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() > bestPath.getNumElites());
+                        || (roomType == MonsterRoomElite.class && currentPath.getNumElites() < bestPath.getNumElites());
                 boolean lookForNextCriteriaToTest = (roomType == RestRoom.class && currentPath.getNumCampSites() == bestPath.getNumCampSites())
                         || (roomType == MonsterRoomElite.class && currentPath.getNumElites() == bestPath.getNumElites());
                 if(bestPath.isEmpty() || pathReplacesOldOne){
@@ -163,24 +154,5 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
             }
         }
         return -1;
-    }
-
-    // Debug functions
-
-    public static String printNode(MapRoomNode node){
-        return ("(" + node.x + "," + node.y + ")");
-    }
-
-    public static String printEdge(MapEdge edge){
-        return ("(" + edge.srcX + "," + edge.srcY + ") -> (" + edge.dstX + "," + edge.dstY + ")");
-    }
-
-    public void printDungeon(){
-        for(ArrayList<MapRoomNode> list: AbstractDungeon.map){
-            for(MapRoomNode node: list){
-                System.out.print(printNode(node) + " ");
-            }
-            System.out.println();
-        }
     }
 }
