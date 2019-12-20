@@ -3,55 +3,46 @@ package best_route_mod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.RestRoom;
+import javafx.util.Pair;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MapPath {
     // TODO: convert to hashtable (class -> int)
     private HashMap<Class, Integer> roomCounts;
-    private int numCampSites;
-
-    public int getNumElites() {
-        return numElites;
-    }
-
-    private int numElites;
     private ArrayList<MapRoomNode> path;
 
     public MapPath(){
-        this(new ArrayList<MapRoomNode>(), 0, 0);
+        this(new ArrayList<MapRoomNode>(), new HashMap<Class, Integer>());
     }
 
-    public MapPath(MapRoomNode node, int numCampSites, int numElites){
-        this(new ArrayList<MapRoomNode>(){{add(node);}}, numCampSites, numElites);
+    public MapPath(MapRoomNode node, HashMap<Class, Integer> roomCounts){
+        this(new ArrayList<MapRoomNode>(){{add(node);}}, roomCounts);
     }
 
-    public MapPath(ArrayList<MapRoomNode> path, int numCampSites, int numElites){
+    public MapPath(ArrayList<MapRoomNode> path, HashMap<Class, Integer> roomCounts){
         this.path = path;
-        this.numCampSites = numCampSites;
-        this.numElites = numElites;
+        this.roomCounts = roomCounts;
     }
 
-    public void incrementNumCampSites(){
-        numCampSites++;
+    public void incrementRoomCount(Class roomType){
+        roomCounts.put(roomType, getRoomCount(roomType)+1);
     }
 
-    public void incrementNumElites(){
-        numElites++;
+    public int getRoomCount(Class roomType){
+        return roomCounts.get(roomType) == null ? 0 : roomCounts.get(roomType);
     }
 
     public void pushNodeToFrontOfPath(MapRoomNode node){
         path.add(0,node);
     }
 
-    public boolean isEmpty(){
+    // Path is "empty", but only because we haven't set it in our code
+    public boolean notSet(){
         return path.isEmpty();
-    }
-
-    public int getNumCampSites(){
-        return numCampSites;
     }
 
     public ArrayList<MapRoomNode> getListOfNodes(){

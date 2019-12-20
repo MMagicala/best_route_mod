@@ -12,6 +12,7 @@ import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 
@@ -19,6 +20,14 @@ import java.util.Queue;
 public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     public BestRouteMod() {
+        // Statically create criteria list: path with most rest sites and least elite encounters
+        if(comparisons == null) {
+            comparisons = new ArrayList<RoomComparison>() {{
+                add(new RoomComparison(RestRoom.class, SignOperator.GREATER));
+                add(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
+            }};
+        }
+
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }
@@ -40,22 +49,10 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     @Override
     public void receivePostUpdate() {
-        // Statically create criteria list
-        if(criteriaList == null) {
-            criteriaList = new ArrayList<Criterium>() {{
-                add(new Criterium(RestRoom.class, SignOperator.GREATER));
-                add(new Criterium(MonsterRoomElite.class, SignOperator.LESS));
-            }};
-        }
-
         if(AbstractDungeon.currMapNode != null && !foundBestPath) {
             // Start traversal code
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
             MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-
-            // Print for debug
-            // printDungeon();
-            // bestPath.printPath();
 
             // Color the edges in the map
             ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
@@ -83,23 +80,27 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         return startingNodes;
     }
 
-    private ArrayList<Criterium> criteriaList;
+        private ArrayList<RoomComparison> comparisons;
 
     private MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes){
         MapPath bestPath = new MapPath();
         for(MapRoomNode node: nodes){
             MapPath currentPath = traverseInDepthOrder(node);
-            for(Criterium criterium: criteriaList){
-
-                if(bestPath.isEmpty() || pathReplacesOldOne){
+            for(int i = 0; i < comparisons.size(); i++){
+                if(bestPath.notSet() || comparisons.get(i).isMet(currentPath, bestPath)){
+                    System.out.print("Best path found for " + comparisons.get(i).getRoomType() + ": ");
+                    System.out.print(currentPath.getRoomCount(comparisons.get(i).getRoomType()) + " " + comparisons.get(i).getComparisonOperator());
+                    System.out.println(" " + bestPath.getRoomCount(comparisons.get(i).getRoomType()) + "\n");
                     bestPath = currentPath;
                     break;
                 }
-                if(lookForNextCriteriaToTest){
-                    // Room has the same value for this criteria, move on to next criteria to test
+                if(comparisons.get(i).hasEqualNumRooms(currentPath, bestPath)){
+                    System.out.print("Paths have equal number of " + comparisons.get(i).getRoomType() + " rooms: ");
+                    System.out.println(bestPath.getRoomCount(comparisons.get(i).getRoomType()));
                     continue;
                 }
                 // Room does not meet the criteria to replace the old one, exit
+                System.out.println("Current path fails to meet comparison for " + comparisons.get(i).getRoomType() + "\n");
                 break;
             }
         }
@@ -111,13 +112,16 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         // printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         // Last node will always be a campfire
-        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1, 0);
+        if(adjacentNodesAboveGivenNode.isEmpty()){
+            HashMap<Class, Integer> roomCounts = new HashMap<Class, Integer>();
+            roomCounts.put(RestRoom.class, 1);
+            return new MapPath(node, roomCounts);
+        }
 
         MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(adjacentNodesAboveGivenNode);
         bestPath.pushNodeToFrontOfPath(node);
 
-        if(node.room instanceof RestRoom) bestPath.incrementNumCampSites();
-        else if(node.room instanceof MonsterRoomElite) bestPath.incrementNumElites();
+        bestPath.incrementRoomCount(node.room.getClass());
 
         return bestPath;
     }
