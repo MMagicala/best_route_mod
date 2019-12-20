@@ -28,8 +28,6 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
 
     boolean foundBestPath = false;
 
-    // TODO: update the path once current node changes
-
     @Override
     public void receiveStartAct() {
         foundBestPath = false;
@@ -52,31 +50,7 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         if(AbstractDungeon.currMapNode != null && !foundBestPath) {
             // Start traversal code
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-            MapPath bestPath = new MapPath();
-            for(MapRoomNode startingNode: startingNodes){
-                if(bestPath.isEmpty()){
-                    bestPath = traverseInDepthOrder(startingNode);
-                }else{
-                    MapPath currentPath = traverseInDepthOrder(startingNode);
-                    // Perform comparisons using the order of priority
-                    for(Class roomType: roomPriority){
-                        boolean pathReplacesOldOne = (roomType == RestRoom.class && currentPath.getNumCampSites() > bestPath.getNumCampSites())
-                                || (roomType == MonsterRoomElite.class && currentPath.getNumElites() > bestPath.getNumElites());
-                        boolean lookForNextCriteriaToTest = (roomType == RestRoom.class && currentPath.getNumCampSites() == bestPath.getNumCampSites())
-                                || (roomType == MonsterRoomElite.class && currentPath.getNumElites() == bestPath.getNumElites());
-                        if(pathReplacesOldOne){
-                            bestPath = currentPath;
-                            break;
-                        }
-                        if(lookForNextCriteriaToTest){
-                            // Room has the same value for this criteria, move on to next criteria to test
-                            continue;
-                        }
-                        // Room does not meet the criteria to replace the old one, exit
-                        break;
-                    }
-                }
-            }
+            MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
 
             // Print for debug
             // printDungeon();
@@ -92,7 +66,6 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
     }
 
     private void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
-
         /*System.out.println(AbstractDungeon.map.get(srcNode.y).get(srcNode.x) == null);
         System.out.println(AbstractDungeon.map.get(destNode.y).get(destNode.x) == null);
         System.out.print("Coloring ");
@@ -118,15 +91,10 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
         return startingNodes;
     }
 
-    // Travel all the nodes on the map (except for the boss node)
-    private MapPath traverseInDepthOrder(MapRoomNode node) {
-        // printNode(node);
-        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
-        // Last node will always be a campfire
-        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1, 0);
+    private MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes){
         MapPath bestPath = new MapPath();
-        for(MapRoomNode adjacentNode: adjacentNodesAboveGivenNode){
-            MapPath currentPath = traverseInDepthOrder(adjacentNode);
+        for(MapRoomNode node: nodes){
+            MapPath currentPath = traverseInDepthOrder(node);
             // Compare number of rest sites for paths
             // Perform comparisons using the order of priority
             for(Class roomType: roomPriority){
@@ -146,6 +114,17 @@ public class BestRouteMod implements basemod.interfaces.PostUpdateSubscriber, ba
                 break;
             }
         }
+        return bestPath;
+    }
+
+    // Travel all the nodes on the map (except for the boss node)
+    private MapPath traverseInDepthOrder(MapRoomNode node) {
+        // printNode(node);
+        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
+        // Last node will always be a campfire
+        if(adjacentNodesAboveGivenNode.isEmpty()) return new MapPath(node, 1, 0);
+
+        MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(adjacentNodesAboveGivenNode);
         bestPath.pushNodeToFrontOfPath(node);
 
         if(node.room instanceof RestRoom) bestPath.incrementNumCampSites();
