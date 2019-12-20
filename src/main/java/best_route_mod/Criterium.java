@@ -9,7 +9,13 @@ public class Criterium {
         this.comparisonOperator = comparisonOperator;
     }
 
-    public static boolean isCriteriumMet(MapPath bestPath, MapPath currentPath){
-        // TODO
+    public boolean isCriteriumMet(MapPath bestPath, MapPath currentPath){
+        switch(comparisonOperator) {
+            case LESS:
+
+                break;
+            case GREATER:
+
+        }
     }
 }

@@ -6,8 +6,11 @@ import com.megacrit.cardcrawl.rooms.RestRoom;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MapPath {
+    // TODO: convert to hashtable (class -> int)
+    private HashMap<Class, Integer> roomCounts;
     private int numCampSites;
 
     public int getNumElites() {
