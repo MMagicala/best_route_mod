@@ -21,15 +21,19 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     public BestRouteMod() {
         // Statically create criteria list: path with most rest sites and least elite encounters
-        if(comparisons == null) {
-            comparisons = new ArrayList<RoomComparison>() {{
-                add(new RoomComparison(RestRoom.class, SignOperator.GREATER));
-                add(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
-            }};
+        if(levelsOfComparisons == null) {
+            levelsOfComparisons = new ArrayList<ArrayList<RoomComparison>>();
         }
+        pushComparisonToFront(new RoomComparison(RestRoom.class, SignOperator.GREATER));
+        pushComparisonToFront(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS));
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
+    }
+
+    // TODO: work on pushing
+    private void pushComparisonToFront(RoomComparison comparison){
+        // levelsOfComparisons.at(index).add(comparison);
     }
 
     public static void initialize() {
@@ -80,31 +84,46 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         return startingNodes;
     }
 
-        private ArrayList<RoomComparison> comparisons;
+    private ArrayList<ArrayList<RoomComparison>> levelsOfComparisons;
 
     private MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes){
         MapPath bestPath = new MapPath();
         for(MapRoomNode node: nodes){
             MapPath currentPath = traverseInDepthOrder(node);
-            for(int i = 0; i < comparisons.size(); i++){
-                if(bestPath.notSet() || comparisons.get(i).isMet(currentPath, bestPath)){
-                    System.out.print("Best path found for " + comparisons.get(i).getRoomType() + ": ");
-                    System.out.print(currentPath.getRoomCount(comparisons.get(i).getRoomType()) + " " + comparisons.get(i).getComparisonOperator());
-                    System.out.println(" " + bestPath.getRoomCount(comparisons.get(i).getRoomType()) + "\n");
-                    bestPath = currentPath;
+            for(int i = 0; i < levelsOfComparisons.size(); i++){
+                // TODO: fix level comparison
+                for(int j = 0; j < levelsOfComparisons.get(i).size(); j++) {
+                    if (bestPath.notSet() || allComparisonsInLevelMet(levelsOfComparisons.get(i), currentPath, bestPath)) {
+                        bestPath = currentPath;
+                        break;
+                    }
+                    if (allComparisonsInLevelEqual(levelsOfComparisons.get(i), currentPath, bestPath)) {
+                        continue;
+                    }
+                    // Room does not meet the criteria to replace the old one, exit
                     break;
                 }
-                if(comparisons.get(i).hasEqualNumRooms(currentPath, bestPath)){
-                    System.out.print("Paths have equal number of " + comparisons.get(i).getRoomType() + " rooms: ");
-                    System.out.println(bestPath.getRoomCount(comparisons.get(i).getRoomType()));
-                    continue;
-                }
-                // Room does not meet the criteria to replace the old one, exit
-                System.out.println("Current path fails to meet comparison for " + comparisons.get(i).getRoomType() + "\n");
-                break;
             }
         }
         return bestPath;
+    }
+
+    private boolean allComparisonsInLevelEqual(ArrayList<RoomComparison> comparisonsInSameLevel, MapPath currentPath, MapPath bestPath){
+        for(RoomComparison comparison: comparisonsInSameLevel){
+            if(!comparison.hasEqualNumRooms(currentPath, bestPath)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean allComparisonsInLevelMet(ArrayList<RoomComparison> comparisonsInSameLevel, MapPath currentPath, MapPath bestPath){
+        for(RoomComparison comparison: comparisonsInSameLevel){
+            if(!comparison.isMet(currentPath, bestPath)){
+                return false;
+            }
+        }
+        return true;
     }
 
     // Travel all the nodes on the map (except for the boss node)
