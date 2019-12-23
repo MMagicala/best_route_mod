@@ -2,6 +2,7 @@ package best_route_mod;
 
 import basemod.BaseMod;
 import basemod.interfaces.OnStartBattleSubscriber;
+import basemod.interfaces.PostInitializeSubscriber;
 import basemod.interfaces.PostUpdateSubscriber;
 import basemod.interfaces.StartActSubscriber;
 import com.badlogic.gdx.graphics.Color;
@@ -17,17 +18,19 @@ import java.util.Map;
 import java.util.Queue;
 
 @SpireInitializer
-public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
+public class BestRouteMod implements PostInitializeSubscriber {
+
+    @Override
+    public void receivePostInitialize() { }
 
     public BestRouteMod() {
         // Statically create criteria list: path with most rest sites and least elite encounters
-        if(comparisons == null) {
-            comparisons = new ArrayList<RoomComparison>() {{
-                add(new RoomComparison(RestRoom.class, SignOperator.GREATER));
-                add(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
-            }};
-        }
-
+        comparisons = new ArrayList<RoomComparison>() {{
+            add(new RoomComparison(RestRoom.class, SignOperator.GREATER));
+            add(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
+            add(new RoomComparison(MonsterRoom.class, SignOperator.LESS));
+            add(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS));
+        }};
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }
@@ -36,83 +39,59 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         new BestRouteMod();
     }
 
-    boolean foundBestPath = false;
-
-    // Find the new best path for each act
-    @Override
-    public void receiveStartAct() {
-        foundBestPath = false;
-    }
-
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
-    @Override
-    public void receivePostUpdate() {
-        if(AbstractDungeon.currMapNode != null && !foundBestPath) {
-            // Start traversal code
-            ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-            MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-
-            // Color the edges in the map
-            ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
-            for(int i = 0; i < bestPathNodeList.size()-1; i++){
-                colorEdgeInMap(bestPathNodeList.get(i), bestPathNodeList.get(i+1));
-            }
-            foundBestPath = true;
-        }
-    }
-
-    private void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
-        if(srcNode.y == 0){
+    public static void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode) {
+        if (srcNode.y == 0) {
             AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).markAsTaken();
             AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).color = Color.RED;
-        }else{
+        } else {
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = Color.RED;
         }
 
     }
 
-    private ArrayList<MapRoomNode> getStartingNodes(){
+    public static ArrayList<MapRoomNode> getStartingNodes() {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
         startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
         return startingNodes;
     }
 
-        private ArrayList<RoomComparison> comparisons;
+    public static ArrayList<RoomComparison> comparisons;
 
-    private MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes){
+    public static MapPath findBestPathFromNode(MapRoomNode node){
+        return findBestPathFromAdjacentOrStartingNodes(new ArrayList<MapRoomNode>(){{add(node);}});
+    }
+
+    public static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
         MapPath bestPath = new MapPath();
-        for(MapRoomNode node: nodes){
+        for (MapRoomNode node : nodes) {
             MapPath currentPath = traverseInDepthOrder(node);
-            for(int i = 0; i < comparisons.size(); i++){
-                if(bestPath.notSet() || comparisons.get(i).isMet(currentPath, bestPath)){
-                    System.out.print("Best path found for " + comparisons.get(i).getRoomType() + ": ");
-                    System.out.print(currentPath.getRoomCount(comparisons.get(i).getRoomType()) + " " + comparisons.get(i).getComparisonOperator());
-                    System.out.println(" " + bestPath.getRoomCount(comparisons.get(i).getRoomType()) + "\n");
+            for (int i = 0; i < comparisons.size(); i++) {
+                if (bestPath.notSet() || comparisons.get(i).isMet(currentPath, bestPath)) {
                     bestPath = currentPath;
                     break;
                 }
-                if(comparisons.get(i).hasEqualNumRooms(currentPath, bestPath)){
-                    System.out.print("Paths have equal number of " + comparisons.get(i).getRoomType() + " rooms: ");
-                    System.out.println(bestPath.getRoomCount(comparisons.get(i).getRoomType()));
+                if (comparisons.get(i).hasEqualNumRooms(currentPath, bestPath)) {
                     continue;
                 }
                 // Room does not meet the criteria to replace the old one, exit
-                System.out.println("Current path fails to meet comparison for " + comparisons.get(i).getRoomType() + "\n");
                 break;
             }
         }
         return bestPath;
     }
 
+    // PRIVATE METHODS
+
     // Travel all the nodes on the map (except for the boss node)
-    private MapPath traverseInDepthOrder(MapRoomNode node) {
+    private static MapPath traverseInDepthOrder(MapRoomNode node) {
         // printNode(node);
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         // Last node will always be a campfire
-        if(adjacentNodesAboveGivenNode.isEmpty()){
+        if (adjacentNodesAboveGivenNode.isEmpty()) {
             HashMap<Class, Integer> roomCounts = new HashMap<Class, Integer>();
             roomCounts.put(RestRoom.class, 1);
             return new MapPath(node, roomCounts);
@@ -126,21 +105,21 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
         return bestPath;
     }
 
-    private ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node){
+    private static ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node) {
         ArrayList<MapEdge> mapEdges = node.getEdges();
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = new ArrayList<MapRoomNode>();
         mapEdges.forEach(mapEdge -> {
             // The boss node is 2 levels above the last rest site nodes, don't count it since we can't access it on the
             // AbstractDungeon.map object
-            if(mapEdge.dstY - node.y == 1){
+            if (mapEdge.dstY - node.y == 1) {
                 adjacentNodesAboveGivenNode.add(getNodeAtCoordinates(mapEdge.dstX, mapEdge.dstY));
             }
         });
         return adjacentNodesAboveGivenNode;
     }
 
-    public MapRoomNode getNodeAtCoordinates(int x, int y){
-        if(y == 0){
+    private static MapRoomNode getNodeAtCoordinates(int x, int y) {
+        if (y == 0) {
             return AbstractDungeon.map.get(y).get(getArrayIndexOfXCoordinate(x));
         }
         return AbstractDungeon.map.get(y).get(x);
@@ -148,10 +127,10 @@ public class BestRouteMod implements PostUpdateSubscriber, StartActSubscriber {
 
     // THe first row of nodes have x-coordinates different from their array indices
     // So we have to loop through the first row to find the correct node
-    private int getArrayIndexOfXCoordinate(int x){
-        for(int i = 0; i < AbstractDungeon.map.get(0).size(); i++){
+    private static int getArrayIndexOfXCoordinate(int x) {
+        for (int i = 0; i < AbstractDungeon.map.get(0).size(); i++) {
             MapRoomNode node = AbstractDungeon.map.get(0).get(i);
-            if(node.x == x){
+            if (node.x == x) {
                 return i;
             }
         }

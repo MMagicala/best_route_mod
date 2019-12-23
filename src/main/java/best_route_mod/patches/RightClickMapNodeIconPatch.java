@@ -1,11 +1,13 @@
-package best_route_mod;
+package best_route_mod.patches;
 
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
 public class RightClickMapNodeIconPatch {
-/*    @SpirePatch(
+/*
+    @SpirePatch(
 
-    )*/
+    )
+*/
 }

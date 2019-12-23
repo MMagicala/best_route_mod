@@ -15,20 +15,34 @@ import java.util.ArrayList;
 
 import static best_route_mod.BestRouteMod.*;
 
+public class PathSelectedPatch {
+    @SpirePatch(
+            clz=AbstractDungeon.class,
+            method="setCurrMapNode"
+    )
+    public static class CurrNodeSelected{
+        @SpirePostfixPatch
+        public static void Postfix(MapRoomNode currentNode) {
+            MapPath bestPath = findBestPathFromNode(currentNode);
+            colorBestPath(bestPath);
+        }
+    }
 
-@SpirePatch(
-    clz=AbstractDungeon.class,
-    method="setCurrMapNode"
-)
-public class CurrentNodeSelectedPatch {
-    @SpirePostfixPatch
-    public static void Postfix(Object o) {
-        System.out.println("\ncurrent map node selected!!!\n");
+    @SpirePatch(
+            clz=AbstractDungeon.class,
+            method="generateMap"
+    )
+    public static class MapGenerated{
+        @SpirePostfixPatch
+        public static void Postfix() {
+            // TODO: make check so method doesnt run again when continuing game
+            ArrayList<MapRoomNode> startingNodes = getStartingNodes();
+            MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
+            colorBestPath(bestPath);
+        }
+    }
 
-        // Start traversal code
-        ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-        MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-
+    private static void colorBestPath(MapPath bestPath){
         // Color the edges in the map
         ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
         for (int i = 0; i < bestPathNodeList.size() - 1; i++) {
@@ -36,3 +50,4 @@ public class CurrentNodeSelectedPatch {
         }
     }
 }
+
