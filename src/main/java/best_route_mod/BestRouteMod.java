@@ -20,23 +20,43 @@ import java.util.Queue;
 @SpireInitializer
 public class BestRouteMod implements PostInitializeSubscriber {
 
+    public static ArrayList<ArrayList<RoomComparison>> comparisons;
+    public static MapPath bestPath;
+
     @Override
     public void receivePostInitialize() { }
 
     public BestRouteMod() {
         // Statically create criteria list: path with most rest sites and least elite encounters
-        comparisons = new ArrayList<RoomComparison>() {{
-            add(new RoomComparison(RestRoom.class, SignOperator.GREATER));
-            add(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
-            add(new RoomComparison(MonsterRoom.class, SignOperator.LESS));
-            add(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS));
-        }};
+        comparisons = new ArrayList<>();
+
+        addComparisonOnTop(new RoomComparison(RestRoom.class, SignOperator.GREATER));
+        addComparisonOnTop(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
+        //addComparisonAtIndex(new RoomComparison(MonsterRoom.class, SignOperator.LESS), 0);
+        //addComparisonAtIndex(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS), 0);
+
+        System.out.println("# of levels: " + comparisons.size() + ", # of comparisons: " + comparisons.get(0).size());
+
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }
 
     public static void initialize() {
         new BestRouteMod();
+    }
+
+    public void addComparisonOnTop(RoomComparison comparison){
+        comparisons.add(new ArrayList<>());
+        comparisons.get(comparisons.size()-1).add(comparison);
+    }
+
+    public void addComparisonBelow(RoomComparison comparison){
+        comparisons.add(0, new ArrayList<>());
+        comparisons.get(0).add(comparison);
+    }
+
+    public void addComparisonAtIndex(RoomComparison comparison, int index){
+        comparisons.get(index).add(comparison);
     }
 
     // first row of map only contains starting nodes, other rows always have 7 nodes
@@ -48,29 +68,51 @@ public class BestRouteMod implements PostInitializeSubscriber {
         return startingNodes;
     }
 
-    public static ArrayList<RoomComparison> comparisons;
-    public static MapPath bestPath;
-
     public static MapPath findBestPathFromNode(MapRoomNode node){
-        return findBestPathFromAdjacentOrStartingNodes(new ArrayList<MapRoomNode>(){{add(node);}});
+        return traverseInDepthOrder(node);
+    }
+
+    private static boolean allComparisonsOnSameLevelMet(ArrayList<RoomComparison> comparisons, MapPath currentPath, MapPath bestPath){
+        for(RoomComparison comparison: comparisons){
+            if(!comparison.isMet(currentPath, bestPath)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean allComparisonsOnSameLevelEqual(ArrayList<RoomComparison> comparisons, MapPath currentPath, MapPath bestPath){
+        for(RoomComparison comparison: comparisons){
+            if(!comparison.hasEqualNumRooms(currentPath, bestPath)){
+                return false;
+            }
+        }
+        return true;
     }
 
     public static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
+        System.out.println("Finding best path from node list of length " + nodes.size() + " using # of comparisons " + comparisons.get(0).size());
         MapPath bestPath = new MapPath();
-        for (MapRoomNode node : nodes) {
-            MapPath currentPath = traverseInDepthOrder(node);
-            for (int i = 0; i < comparisons.size(); i++) {
-                if (bestPath.notSet() || comparisons.get(i).isMet(currentPath, bestPath)) {
+        for (int i = 0; i < nodes.size(); i++) {
+            System.out.println("i: " + i);
+            MapPath currentPath = traverseInDepthOrder(nodes.get(i));
+            for (int j = 0; j < comparisons.size(); j++) {
+                System.out.println("j: " + j);
+                if (bestPath.notSet() || allComparisonsOnSameLevelMet(comparisons.get(j), currentPath, bestPath)) {
                     bestPath = currentPath;
+                    System.out.println(bestPath.notSet());
                     break;
                 }
-                if (comparisons.get(i).hasEqualNumRooms(currentPath, bestPath)) {
+                if (allComparisonsOnSameLevelEqual(comparisons.get(j), currentPath, bestPath)) {
+                    System.out.println("Current path meets same criteria as best path. continuing");
                     continue;
                 }
                 // Room does not meet the criteria to replace the old one, exit
+                System.out.println("Room does not meet criteria. exit");
                 break;
             }
         }
+        System.out.println("returning best path");
         return bestPath;
     }
 

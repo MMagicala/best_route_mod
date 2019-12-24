@@ -38,7 +38,6 @@ public class PathSelectedPatch {
     public static class MapGenerated{
         @SpirePostfixPatch
         public static void Postfix() {
-            // Decolor old path
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
             bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
             colorPath(bestPath, Color.RED);
