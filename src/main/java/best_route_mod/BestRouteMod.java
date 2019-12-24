@@ -32,8 +32,8 @@ public class BestRouteMod implements PostInitializeSubscriber {
 
         addComparisonOnTop(new RoomComparison(RestRoom.class, SignOperator.GREATER));
         addComparisonOnTop(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
-        //addComparisonAtIndex(new RoomComparison(MonsterRoom.class, SignOperator.LESS), 0);
-        //addComparisonAtIndex(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS), 0);
+        addComparisonOnTop(new RoomComparison(MonsterRoom.class, SignOperator.LESS));
+        addComparisonAtIndex(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS), 2);
 
         System.out.println("# of levels: " + comparisons.size() + ", # of comparisons: " + comparisons.get(0).size());
 
