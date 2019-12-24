@@ -42,17 +42,6 @@ public class BestRouteMod implements PostInitializeSubscriber {
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
-    public static void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode) {
-        if (srcNode.y == 0) {
-            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).markAsTaken();
-            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).color = Color.RED;
-        } else {
-            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
-            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = Color.RED;
-        }
-
-    }
-
     public static ArrayList<MapRoomNode> getStartingNodes() {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
         startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
@@ -60,6 +49,7 @@ public class BestRouteMod implements PostInitializeSubscriber {
     }
 
     public static ArrayList<RoomComparison> comparisons;
+    public static MapPath bestPath;
 
     public static MapPath findBestPathFromNode(MapRoomNode node){
         return findBestPathFromAdjacentOrStartingNodes(new ArrayList<MapRoomNode>(){{add(node);}});
@@ -82,6 +72,21 @@ public class BestRouteMod implements PostInitializeSubscriber {
             }
         }
         return bestPath;
+    }
+
+    public static void colorPath(MapPath path, Color color){
+        // Color the edges in the map
+        ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
+        for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), Color.RED);
+        }
+    }
+
+    public static void disablePath(MapPath path) {
+        ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
+        for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
+            disableEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1));
+        }
     }
 
     // PRIVATE METHODS
@@ -125,7 +130,7 @@ public class BestRouteMod implements PostInitializeSubscriber {
         return AbstractDungeon.map.get(y).get(x);
     }
 
-    // THe first row of nodes have x-coordinates different from their array indices
+    // The first row of nodes have x-coordinates different from their array indices
     // So we have to loop through the first row to find the correct node
     private static int getArrayIndexOfXCoordinate(int x) {
         for (int i = 0; i < AbstractDungeon.map.get(0).size(); i++) {
@@ -135,5 +140,24 @@ public class BestRouteMod implements PostInitializeSubscriber {
             }
         }
         return -1;
+    }
+
+    private static void disableEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
+        if (srcNode.y == 0) {
+            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).taken = false;
+        } else {
+            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).taken = false;
+        }
+    }
+
+    private static void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode, Color color) {
+        if (srcNode.y == 0) {
+            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).markAsTaken();
+            AbstractDungeon.map.get(0).get(getArrayIndexOfXCoordinate(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).color = color;
+        } else {
+            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
+            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
+        }
+
     }
 }

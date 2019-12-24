@@ -1,6 +1,8 @@
 package best_route_mod.patches;
 
+import best_route_mod.BestRouteMod;
 import best_route_mod.MapPath;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.*;
 import com.evacipated.cardcrawl.modthespire.patcher.PatchingException;
@@ -23,8 +25,9 @@ public class PathSelectedPatch {
     public static class CurrNodeSelected{
         @SpirePostfixPatch
         public static void Postfix(MapRoomNode currentNode) {
-            MapPath bestPath = findBestPathFromNode(currentNode);
-            colorBestPath(bestPath);
+            if(bestPath != null) disablePath(bestPath);
+            bestPath = findBestPathFromNode(currentNode);
+            colorPath(bestPath, Color.RED);
         }
     }
 
@@ -35,18 +38,10 @@ public class PathSelectedPatch {
     public static class MapGenerated{
         @SpirePostfixPatch
         public static void Postfix() {
-            // TODO: make check so method doesnt run again when continuing game
+            // Decolor old path
             ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-            MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-            colorBestPath(bestPath);
-        }
-    }
-
-    private static void colorBestPath(MapPath bestPath){
-        // Color the edges in the map
-        ArrayList<MapRoomNode> bestPathNodeList = bestPath.getListOfNodes();
-        for (int i = 0; i < bestPathNodeList.size() - 1; i++) {
-            colorEdgeInMap(bestPathNodeList.get(i), bestPathNodeList.get(i + 1));
+            bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
+            colorPath(bestPath, Color.RED);
         }
     }
 }
