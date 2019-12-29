@@ -1,4 +1,4 @@
-# best_route_mod
+# Best Route Mod
 Find the best route in Slay The Spire according to specified criteria
 
 Colors the path on the map which contains the specified criteria (i.e least elite encounters, most rest sites, etc.)
