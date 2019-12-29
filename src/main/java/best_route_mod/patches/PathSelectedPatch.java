@@ -24,10 +24,8 @@ public class PathSelectedPatch {
     )
     public static class CurrNodeSelected{
         @SpirePostfixPatch
-        public static void Postfix(MapRoomNode currentNode) {
-            if(bestPath != null) disablePath(bestPath);
-            bestPath = findBestPathFromNode(currentNode);
-            colorPath(bestPath, Color.RED);
+        public static void Postfix() {
+            BestRouteMod.generateAndShowBestPathFromCurrentNode();
         }
     }
 

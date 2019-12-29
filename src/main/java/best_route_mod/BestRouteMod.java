@@ -31,9 +31,6 @@ public class BestRouteMod implements PostInitializeSubscriber {
         comparisons = new ArrayList<>();
 
         addComparisonOnTop(new RoomComparison(RestRoom.class, SignOperator.GREATER));
-        addComparisonOnTop(new RoomComparison(ShopRoom.class, SignOperator.GREATER));
-        addComparisonOnTop(new RoomComparison(MonsterRoom.class, SignOperator.LESS));
-        addComparisonAtIndex(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS), 2);
 
         System.out.println("# of levels: " + comparisons.size() + ", # of comparisons: " + comparisons.get(0).size());
 
@@ -45,11 +42,20 @@ public class BestRouteMod implements PostInitializeSubscriber {
         new BestRouteMod();
     }
 
-    public void addComparisonOnTop(RoomComparison comparison){
+    public static void addComparisonOnTop(RoomComparison comparison){
         comparisons.add(new ArrayList<>());
         comparisons.get(comparisons.size()-1).add(comparison);
     }
 
+    public static void removeComparisonOnTop(){
+        comparisons.get(0).remove(0);
+    }
+
+    public static boolean comparisonExistsOnTop(){
+        return comparisons.get(0).size() != 0;
+    }
+
+/*
     public void addComparisonBelow(RoomComparison comparison){
         comparisons.add(0, new ArrayList<>());
         comparisons.get(0).add(comparison);
@@ -58,6 +64,7 @@ public class BestRouteMod implements PostInitializeSubscriber {
     public void addComparisonAtIndex(RoomComparison comparison, int index){
         comparisons.get(index).add(comparison);
     }
+*/
 
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
@@ -91,28 +98,21 @@ public class BestRouteMod implements PostInitializeSubscriber {
     }
 
     public static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
-        System.out.println("Finding best path from node list of length " + nodes.size() + " using # of comparisons " + comparisons.get(0).size());
         MapPath bestPath = new MapPath();
         for (int i = 0; i < nodes.size(); i++) {
-            System.out.println("i: " + i);
             MapPath currentPath = traverseInDepthOrder(nodes.get(i));
             for (int j = 0; j < comparisons.size(); j++) {
-                System.out.println("j: " + j);
                 if (bestPath.notSet() || allComparisonsOnSameLevelMet(comparisons.get(j), currentPath, bestPath)) {
                     bestPath = currentPath;
-                    System.out.println(bestPath.notSet());
                     break;
                 }
                 if (allComparisonsOnSameLevelEqual(comparisons.get(j), currentPath, bestPath)) {
-                    System.out.println("Current path meets same criteria as best path. continuing");
                     continue;
                 }
                 // Room does not meet the criteria to replace the old one, exit
-                System.out.println("Room does not meet criteria. exit");
                 break;
             }
         }
-        System.out.println("returning best path");
         return bestPath;
     }
 
@@ -146,7 +146,6 @@ public class BestRouteMod implements PostInitializeSubscriber {
 
         MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(adjacentNodesAboveGivenNode);
         bestPath.pushNodeToFrontOfPath(node);
-
         bestPath.incrementRoomCount(node.room.getClass());
 
         return bestPath;
@@ -200,6 +199,11 @@ public class BestRouteMod implements PostInitializeSubscriber {
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
         }
+    }
 
+    public static void generateAndShowBestPathFromCurrentNode(){
+        if(bestPath != null) disablePath(bestPath);
+        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
+        colorPath(bestPath, Color.RED);
     }
 }

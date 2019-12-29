@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MapPath {
-    // TODO: convert to hashtable (class -> int)
     private HashMap<Class, Integer> roomCounts;
     private ArrayList<MapRoomNode> path;
 
