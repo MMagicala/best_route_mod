@@ -23,22 +23,31 @@ import java.util.List;
 )
 public class LeftClickMapIconPatch {
     // Create this list since we can't read which legend item's class is
-    static Class[] roomClasses = {EventRoom.class, ShopRoom.class, TreasureRoom.class, RestRoom.class, RestRoom.class, MonsterRoom.class,
-    MonsterRoomElite.class};
+    static RoomComparison[] roomClasses =
+    {
+            new RoomComparison(EventRoom.class),
+            new RoomComparison(ShopRoom.class),
+            new RoomComparison(TreasureRoom.class),
+            new RoomComparison(RestRoom.class),
+            new RoomComparison(RestRoom.class),
+            new RoomComparison(MonsterRoom.class),
+            new RoomComparison(MonsterRoomElite.class)
+    };
     @SpirePostfixPatch
     public static void Postfix(Legend __instance) {
         for(int i = 0; i < __instance.items.size(); i++){
-            if(AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered && InputHelper.justClickedLeft){
-                BestRouteMod.clearComparisonsAtIndex(0);
-                // Create new RoomComparison
-                RoomComparison roomComparison = new RoomComparison(roomClasses[i], SignOperator.GREATER);
-                BestRouteMod.addComparisonAtIndex(roomComparison, 0);
+            // TODO: fix this part
+            if(AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered){
+                if(InputHelper.justClickedLeft){
+
+                }else if(InputHelper.justClickedRight){
+
+                }
+
                 // Regenerate new best path
                 if(!BestRouteMod.currMapNodeAtWhale()){
-                    System.out.println("CurrMapNode at whale");
                     BestRouteMod.generateAndShowBestPathFromCurrentNode();
                 }else{
-                    System.out.println("CurrMapNode not at whale");
                     BestRouteMod.generateAndShowBestPathFromStartingNodes();
                 }
             }
