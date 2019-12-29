@@ -20,19 +20,15 @@ import java.util.Queue;
 @SpireInitializer
 public class BestRouteMod implements PostInitializeSubscriber {
 
-    public static ArrayList<ArrayList<RoomComparison>> comparisons;
-    public static MapPath bestPath;
+    public static Class roomClass;
+    public static ArrayList<MapPath> bestPaths;
 
     @Override
     public void receivePostInitialize() { }
 
     public BestRouteMod() {
-        // Statically create criteria list: path with most rest sites and least elite encounters
-        comparisons = new ArrayList<>();
-
-        addComparisonAtIndex(new RoomComparison(RestRoom.class, SignOperator.GREATER), 0);
-
-        System.out.println("# of levels: " + comparisons.size() + ", # of comparisons: " + comparisons.get(0).size());
+        roomClass = RestRoom.class;
+        bestPaths = new ArrayList<>();
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
@@ -42,58 +38,35 @@ public class BestRouteMod implements PostInitializeSubscriber {
         new BestRouteMod();
     }
 
-    public static void addComparisonAtIndex(RoomComparison comparison, int index){
-        comparisons.add(new ArrayList<>());
-        comparisons.get(index).add(comparison);
-    }
-
-    public static void clearComparisonsAtIndex(int index){
-        comparisons.get(index).clear();
-    }
-
-/*
-    public void addComparisonBelow(RoomComparison comparison){
-        comparisons.add(0, new ArrayList<>());
-        comparisons.get(0).add(comparison);
-    }
-
-    public void addComparisonAtIndex(RoomComparison comparison, int index){
-        comparisons.get(index).add(comparison);
-    }
-*/
-
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
-    public static ArrayList<MapRoomNode> getStartingNodes() {
+    // TODO: clean up code
+
+    private static ArrayList<MapRoomNode> getStartingNodes() {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
         startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
         return startingNodes;
+    }
+
+    public static void generateAndShowBestPathFromCurrentNode(){
+        if(!bestPaths.isEmpty()) disableAllPaths(bestPath);
+        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
+        colorPath(bestPath, Color.RED);
+    }
+
+    public static void generateAndShowBestPathFromStartingNodes(){
+        if(!bestPaths.isEmpty()) disableAllPaths(bestPath);
+        ArrayList<MapRoomNode> startingNodes = getStartingNodes();
+        bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
+        colorPath(bestPath, Color.RED);
     }
 
     public static MapPath findBestPathFromNode(MapRoomNode node){
         return traverseInDepthOrder(node);
     }
 
-    private static boolean allComparisonsOnSameLevelMet(ArrayList<RoomComparison> comparisons, MapPath currentPath, MapPath bestPath){
-        for(RoomComparison comparison: comparisons){
-            if(!comparison.isMet(currentPath, bestPath)){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean allComparisonsOnSameLevelEqual(ArrayList<RoomComparison> comparisons, MapPath currentPath, MapPath bestPath){
-        for(RoomComparison comparison: comparisons){
-            if(!comparison.hasEqualNumRooms(currentPath, bestPath)){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
+    public static MapPath findBestPathFromAdjacentNodes(ArrayList<MapRoomNode> nodes) {
         MapPath bestPath = new MapPath();
         for (int i = 0; i < nodes.size(); i++) {
             MapPath currentPath = traverseInDepthOrder(nodes.get(i));
@@ -112,7 +85,9 @@ public class BestRouteMod implements PostInitializeSubscriber {
         return bestPath;
     }
 
-    public static void colorPath(MapPath path, Color color){
+
+
+    private static void colorPath(MapPath path, Color color){
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
@@ -120,7 +95,7 @@ public class BestRouteMod implements PostInitializeSubscriber {
         }
     }
 
-    public static void disablePath(MapPath path) {
+    private static void disablePath(MapPath path) {
         ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
             disableEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1));
@@ -195,19 +170,6 @@ public class BestRouteMod implements PostInitializeSubscriber {
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
             AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
         }
-    }
-
-    public static void generateAndShowBestPathFromCurrentNode(){
-        if(bestPath != null) disablePath(bestPath);
-        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
-        colorPath(bestPath, Color.RED);
-    }
-
-    public static void generateAndShowBestPathFromStartingNodes(){
-        if(bestPath != null) disablePath(bestPath);
-        ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-        bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-        colorPath(bestPath, Color.RED);
     }
 
     public static boolean currMapNodeAtWhale(){

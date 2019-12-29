@@ -1,21 +1,13 @@
 package best_route_mod.patches;
 
 import best_route_mod.BestRouteMod;
-import best_route_mod.RoomComparison;
 import best_route_mod.SignOperator;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.Legend;
-import com.megacrit.cardcrawl.map.LegendItem;
-import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.*;
-import javafx.application.Application;
-import javafx.stage.Stage;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SpirePatch(
         clz= Legend.class,
