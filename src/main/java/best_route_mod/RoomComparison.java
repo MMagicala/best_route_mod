@@ -13,10 +13,6 @@ public class RoomComparison {
 
     private SignOperator comparisonOperator;
 
-    public RoomComparison(Class roomType){
-        this(roomType, SignOperator.GREATER);
-    }
-
     public RoomComparison(Class roomType, SignOperator comparisonOperator){
         this.roomType = roomType;
         this.comparisonOperator = comparisonOperator;

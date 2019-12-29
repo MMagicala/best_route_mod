@@ -20,8 +20,8 @@ import java.util.Queue;
 @SpireInitializer
 public class BestRouteMod implements PostInitializeSubscriber {
 
+    public static ArrayList<ArrayList<RoomComparison>> comparisons;
     public static MapPath bestPath;
-    private static final int NUM_COMPARISON_LEVELS = 6;
 
     @Override
     public void receivePostInitialize() { }
@@ -29,12 +29,10 @@ public class BestRouteMod implements PostInitializeSubscriber {
     public BestRouteMod() {
         // Statically create criteria list: path with most rest sites and least elite encounters
         comparisons = new ArrayList<>();
-        for(int i = 0; i < NUM_COMPARISON_LEVELS; i++){
-            comparisons.add(new ArrayList<>());
-        }
 
-        addComparisonToIndex(new RoomComparison(MonsterRoomElite.class, SignOperator.LESS), 1);
-        addComparisonToIndex(new RoomComparison(RestRoom.class, SignOperator.GREATER), 0);
+        addComparisonAtIndex(new RoomComparison(RestRoom.class, SignOperator.GREATER), 0);
+
+        System.out.println("# of levels: " + comparisons.size() + ", # of comparisons: " + comparisons.get(0).size());
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
@@ -43,6 +41,26 @@ public class BestRouteMod implements PostInitializeSubscriber {
     public static void initialize() {
         new BestRouteMod();
     }
+
+    public static void addComparisonAtIndex(RoomComparison comparison, int index){
+        comparisons.add(new ArrayList<>());
+        comparisons.get(index).add(comparison);
+    }
+
+    public static void clearComparisonsAtIndex(int index){
+        comparisons.get(index).clear();
+    }
+
+/*
+    public void addComparisonBelow(RoomComparison comparison){
+        comparisons.add(0, new ArrayList<>());
+        comparisons.get(0).add(comparison);
+    }
+
+    public void addComparisonAtIndex(RoomComparison comparison, int index){
+        comparisons.get(index).add(comparison);
+    }
+*/
 
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
