@@ -27,17 +27,20 @@ public class LeftClickMapIconPatch {
     MonsterRoomElite.class};
     @SpirePostfixPatch
     public static void Postfix(Legend __instance) {
-        System.out.println(__instance.items.size());
         for(int i = 0; i < __instance.items.size(); i++){
-            // TODO: fix clicking
-            if(AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.clicked){
-                System.out.println(i + " clicked!");
-                if(BestRouteMod.comparisonExistsOnTop()) BestRouteMod.removeComparisonOnTop();
+            if(AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered && InputHelper.justClickedLeft){
+                BestRouteMod.clearComparisonsAtIndex(0);
                 // Create new RoomComparison
                 RoomComparison roomComparison = new RoomComparison(roomClasses[i], SignOperator.GREATER);
-                BestRouteMod.addComparisonOnTop(roomComparison);
+                BestRouteMod.addComparisonAtIndex(roomComparison, 0);
                 // Regenerate new best path
-                BestRouteMod.generateAndShowBestPathFromCurrentNode();
+                if(!BestRouteMod.currMapNodeAtWhale()){
+                    System.out.println("CurrMapNode at whale");
+                    BestRouteMod.generateAndShowBestPathFromCurrentNode();
+                }else{
+                    System.out.println("CurrMapNode not at whale");
+                    BestRouteMod.generateAndShowBestPathFromStartingNodes();
+                }
             }
         }
     }
