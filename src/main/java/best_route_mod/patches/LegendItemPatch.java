@@ -1,19 +1,15 @@
 package best_route_mod.patches;
 
+import basemod.ReflectionHacks;
 import best_route_mod.BestRouteMod;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
-import com.evacipated.cardcrawl.modthespire.lib.SpirePrefixPatch;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.Legend;
 import com.megacrit.cardcrawl.map.LegendItem;
-import com.megacrit.cardcrawl.rooms.*;
-
-import static best_route_mod.BestRouteMod.roomClasses;
-import static best_route_mod.BestRouteMod.selectedRoomIndex;
 
 public class LegendItemPatch {
 
@@ -26,9 +22,9 @@ public class LegendItemPatch {
         public static void Postfix(Legend __instance) {
             for (int i = 0; i < __instance.items.size(); i++) {
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered && InputHelper.justClickedLeft) {
-                    selectedRoomIndex = i;
-                    System.out.println("Clicked on " + roomClasses[i].getName());
-                    BestRouteMod.setRoomClass(roomClasses[i]);
+                    BestRouteMod.selectedRoomIndex = i;
+                    System.out.println("Clicked on " + BestRouteMod.roomClasses[i].getName());
+                    BestRouteMod.setRoomClass(BestRouteMod.roomClasses[i]);
                     // Regenerate new best path
                     if (!BestRouteMod.currMapNodeAtWhale()) {
                         BestRouteMod.generateAndShowBestPathFromCurrentNode();
@@ -45,11 +41,15 @@ public class LegendItemPatch {
             method="render"
     )
     public static class LegendItemRenderPatch{
-        @SpirePrefixPatch
-        // TODO fix patch
-        // Use index in LegendItem class
-        public static void Prefix(SpriteBatch sb, Color c, Color ___c, int ___index){
-            if(selectedRoomIndex == ___index) ___c = Color.RED;
+        @SpirePostfixPatch
+        public static void Postfix(LegendItem __instance, SpriteBatch sb, Color c){
+            int index = (int) ReflectionHacks.getPrivate(__instance, LegendItem.class, "index");
+            String labelString = (String) ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
+            if(index != BestRouteMod.selectedRoomIndex){
+                if(labelString.charAt(0) == '>') ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", labelString.substring(2));
+                return;
+            }
+            if(labelString.charAt(0) != '>') ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", "> " + labelString);
         }
     }
 }

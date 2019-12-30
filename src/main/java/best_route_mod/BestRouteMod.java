@@ -22,7 +22,6 @@ public class BestRouteMod implements StartActSubscriber {
 
     public static Class roomClass;
     public static MapPath bestPath;
-
     // Create this list since we can't read which legend item's class is
     public static Class[] roomClasses = {EventRoom.class, ShopRoom.class, TreasureRoom.class, RestRoom.class, MonsterRoom.class,
             MonsterRoomElite.class};
@@ -73,8 +72,9 @@ public class BestRouteMod implements StartActSubscriber {
     private static void colorBestPath(){
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
+        Color usedColor = ColorPicker.getCurrentColorAndMoveIndex();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), Color.RED);
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), usedColor);
         }
     }
 
