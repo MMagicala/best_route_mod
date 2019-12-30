@@ -18,20 +18,26 @@ import java.util.Map;
 import java.util.Queue;
 
 @SpireInitializer
-public class BestRouteMod implements PostInitializeSubscriber {
+public class BestRouteMod implements StartActSubscriber {
 
     public static Class roomClass;
-    public static ArrayList<MapPath> bestPaths;
+    public static MapPath bestPath;
 
-    @Override
-    public void receivePostInitialize() { }
+    // Create this list since we can't read which legend item's class is
+    public static Class[] roomClasses = {EventRoom.class, ShopRoom.class, TreasureRoom.class, RestRoom.class, MonsterRoom.class,
+            MonsterRoomElite.class};
+    public static int selectedRoomIndex;
 
     public BestRouteMod() {
-        roomClass = RestRoom.class;
-        bestPaths = new ArrayList<>();
-
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
+    }
+
+    @Override
+    public void receiveStartAct() {
+        // Reset
+        bestPath = null;
+        selectedRoomIndex = -1;
     }
 
     public static void initialize() {
@@ -43,34 +49,32 @@ public class BestRouteMod implements PostInitializeSubscriber {
 
     // API methods
 
+    public static void setRoomClass(Class newRoomClass){
+        roomClass = newRoomClass;
+    }
+
     public static void generateAndShowBestPathFromCurrentNode(){
-        if(!bestPaths.isEmpty()) disableAllPaths();
+        if(bestPath != null) disableCurrentBestPath();
         bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
-        colorAllPaths(bestPath);
+        colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
-        if(!bestPaths.isEmpty()) disableAllPaths();
+        if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-        colorPath(bestPath, Color.RED);
+        colorBestPath();
     }
 
     // Private implementation
 
     // Coloring path methods
 
-    private static void colorAllPaths(){
-        for(MapPath path: bestPaths){
-            colorPath(path, ColorPicker.getCurrentColorAndMoveIndex());
-        }
-    }
-
-    private static void colorPath(MapPath path, Color color){
+    private static void colorBestPath(){
         // Color the edges in the map
-        ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
+        ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), color);
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), Color.RED);
         }
     }
 
@@ -86,18 +90,10 @@ public class BestRouteMod implements PostInitializeSubscriber {
         }
     }
 
-    
-
     // Disable path methods
 
-    private static void disableAllPaths(){
-        for(MapPath path: bestPaths){
-            disablePath(path);
-        }
-    }
-
-    private static void disablePath(MapPath path) {
-        ArrayList<MapRoomNode> pathListOfNodes = path.getListOfNodes();
+    private static void disableCurrentBestPath() {
+        ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
             disableEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1));
         }
@@ -111,44 +107,20 @@ public class BestRouteMod implements PostInitializeSubscriber {
         }
     }
 
+    // Traversal methods
+
     private static ArrayList<MapRoomNode> getStartingNodes() {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
         startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
         return startingNodes;
     }
 
-    public static MapPath findBestPathFromNode(MapRoomNode node){
-        return traverseInDepthOrder(node);
-    }
-
-    public static MapPath findBestPathFromAdjacentNodes(ArrayList<MapRoomNode> nodes) {
-        MapPath bestPath = new MapPath();
-        for (int i = 0; i < nodes.size(); i++) {
-            MapPath currentPath = traverseInDepthOrder(nodes.get(i));
-            for (int j = 0; j < comparisons.size(); j++) {
-                if (bestPath.notSet() || allComparisonsOnSameLevelMet(comparisons.get(j), currentPath, bestPath)) {
-                    bestPath = currentPath;
-                    break;
-                }
-                if (allComparisonsOnSameLevelEqual(comparisons.get(j), currentPath, bestPath)) {
-                    continue;
-                }
-                // Room does not meet the criteria to replace the old one, exit
-                break;
-            }
-        }
-        return bestPath;
-    }
-
-    // PRIVATE METHODS
-
     // Travel all the nodes on the map (except for the boss node)
-    private static MapPath traverseInDepthOrder(MapRoomNode node) {
-        // printNode(node);
+    private static MapPath findBestPathFromNode(MapRoomNode node) {
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         // Last node will always be a campfire
         if (adjacentNodesAboveGivenNode.isEmpty()) {
-            HashMap<Class, Integer> roomCounts = new HashMap<Class, Integer>();
+            HashMap<Class, Integer> roomCounts = new HashMap<>();
             roomCounts.put(RestRoom.class, 1);
             return new MapPath(node, roomCounts);
         }
@@ -157,6 +129,18 @@ public class BestRouteMod implements PostInitializeSubscriber {
         bestPath.pushNodeToFrontOfPath(node);
         bestPath.incrementRoomCount(node.room.getClass());
 
+        return bestPath;
+    }
+
+
+    private static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
+        MapPath bestPath = null;
+        for (MapRoomNode node : nodes) {
+            MapPath currentPath = findBestPathFromNode(node);
+            if (bestPath == null || currentPath.getRoomCount(roomClass) > bestPath.getRoomCount(roomClass)) {
+                bestPath = currentPath;
+            }
+        }
         return bestPath;
     }
 

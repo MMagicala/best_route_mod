@@ -39,11 +39,6 @@ public class MapPath {
         path.add(0,node);
     }
 
-    // Path is "empty", but only because we haven't set it in our code
-    public boolean notSet(){
-        return path.isEmpty();
-    }
-
     public ArrayList<MapRoomNode> getListOfNodes(){
         return path;
     }
