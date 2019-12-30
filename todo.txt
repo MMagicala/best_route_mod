@@ -1,3 +1,0 @@
--Relic for teleporting / skipping rooms
--How to color after path has already been taken / after current node has changed
--Comparing paths with equal #s of rest sites
