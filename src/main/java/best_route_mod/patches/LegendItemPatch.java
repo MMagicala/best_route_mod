@@ -26,7 +26,7 @@ public class LegendItemPatch {
                     Class selectedRoomClass = (Class) BestRouteMod.roomClassesAndColors.keySet().toArray()[i];
                     BestRouteMod.setRoomClass(selectedRoomClass);
                     // Regenerate new best path
-                    if (!BestRouteMod.currMapNodeAtWhale()) {
+                    if (!BestRouteMod.atBeginningOfAct()) {
                         BestRouteMod.generateAndShowBestPathFromCurrentNode();
                     } else {
                         BestRouteMod.generateAndShowBestPathFromStartingNodes();

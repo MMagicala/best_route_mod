@@ -167,8 +167,9 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return -1;
     }
 
-    public static boolean currMapNodeAtWhale(){
-        return AbstractDungeon.currMapNode.y == -1;
+    // Patch: Sometimes player can start at (15, -1), not just (-1, 0)
+    public static boolean atBeginningOfAct(){
+        return AbstractDungeon.currMapNode.y == -1 || (AbstractDungeon.currMapNode.x == -1 && AbstractDungeon.currMapNode.y == 15);
     }
 
     public static void resetMod(){

@@ -15,7 +15,7 @@ public class SetCurrNodePatch {
     @SpirePostfixPatch
     public static void Postfix() {
         // If the best path was already set, update it
-        if (!BestRouteMod.currMapNodeAtWhale() && BestRouteMod.bestPath != null) {
+        if (!BestRouteMod.atBeginningOfAct() && BestRouteMod.bestPath != null) {
             BestRouteMod.generateAndShowBestPathFromCurrentNode();
         }
     }
