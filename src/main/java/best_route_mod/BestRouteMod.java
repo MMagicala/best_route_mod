@@ -16,23 +16,18 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     private static Class roomClass;
     public static MapPath bestPath;
-    // Determine what color should represent each room
-    private static Color[] roomClassColors = {Color.BLUE, Color.PURPLE, Color.GOLD, Color.GREEN, Color.RED, Color.ROYAL};
-    // Create this list since we can't read which legend item's class is
-    public static Class[] roomClasses = {EventRoom.class, ShopRoom.class, TreasureRoom.class, RestRoom.class, MonsterRoom.class,
-            MonsterRoomElite.class};
-    private static LinkedHashMap<Class, Color> roomClassesAndColors;
+    // Determine what color should represent each room (the order of the rooms inserted is the same as the legend's)
+    public static LinkedHashMap<Class, Color> roomClassesAndColors;
     public static int selectedRoomIndex;
 
     public BestRouteMod() {
-        // Using a LinkedHashMap to preserve the order of the classes inserted
         roomClassesAndColors = new LinkedHashMap<>();
         roomClassesAndColors.put(EventRoom.class, Color.BLUE);
         roomClassesAndColors.put(ShopRoom.class, Color.PURPLE);
         roomClassesAndColors.put(TreasureRoom.class, Color.GOLD);
         roomClassesAndColors.put(RestRoom.class, Color.GREEN);
         roomClassesAndColors.put(MonsterRoom.class, Color.RED);
-        roomClassesAndColors.put(MonsterRoomElite.class, Color.ROYAL);
+        roomClassesAndColors.put(MonsterRoomElite.class, Color.MAGENTA);
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");

@@ -23,8 +23,8 @@ public class LegendItemPatch {
             for (int i = 0; i < __instance.items.size(); i++) {
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered && InputHelper.justClickedLeft) {
                     BestRouteMod.selectedRoomIndex = i;
-                    System.out.println("Clicked on " + BestRouteMod.roomClasses[i].getName());
-                    BestRouteMod.setRoomClass(BestRouteMod.roomClasses[i]);
+                    Class selectedRoomClass = (Class) BestRouteMod.roomClassesAndColors.keySet().toArray()[i];
+                    BestRouteMod.setRoomClass(selectedRoomClass);
                     // Regenerate new best path
                     if (!BestRouteMod.currMapNodeAtWhale()) {
                         BestRouteMod.generateAndShowBestPathFromCurrentNode();
