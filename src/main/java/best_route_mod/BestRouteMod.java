@@ -9,46 +9,38 @@ import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 import com.megacrit.cardcrawl.rooms.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 @SpireInitializer
-public class BestRouteMod implements StartGameSubscriber, StartActSubscriber {
+public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
-    public static Class roomClass;
+    private static Class roomClass;
     public static MapPath bestPath;
+    // Determine what color should represent each room
+    private static Color[] roomClassColors = {Color.BLUE, Color.PURPLE, Color.GOLD, Color.GREEN, Color.RED, Color.ROYAL};
     // Create this list since we can't read which legend item's class is
     public static Class[] roomClasses = {EventRoom.class, ShopRoom.class, TreasureRoom.class, RestRoom.class, MonsterRoom.class,
             MonsterRoomElite.class};
+    private static LinkedHashMap<Class, Color> roomClassesAndColors;
     public static int selectedRoomIndex;
 
     public BestRouteMod() {
+        // Using a LinkedHashMap to preserve the order of the classes inserted
+        roomClassesAndColors = new LinkedHashMap<>();
+        roomClassesAndColors.put(EventRoom.class, Color.BLUE);
+        roomClassesAndColors.put(ShopRoom.class, Color.PURPLE);
+        roomClassesAndColors.put(TreasureRoom.class, Color.GOLD);
+        roomClassesAndColors.put(RestRoom.class, Color.GREEN);
+        roomClassesAndColors.put(MonsterRoom.class, Color.RED);
+        roomClassesAndColors.put(MonsterRoomElite.class, Color.ROYAL);
+
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }
 
-    boolean alreadyResetMod;
-
-    private void resetMod(){
-        System.out.println("Started act");
-        bestPath = null;
-        selectedRoomIndex = -1;
-        ColorPicker.resetPicker();
-        alreadyResetMod = true;
-    }
-
+    // Just use this since we need to subscribe to at least one thing
     @Override
-    public void receiveStartGame() {
-        resetMod();
-    }
-
-
-    @Override
-    public void receiveStartAct() {
-        resetMod();
-    }
+    public void receivePostDungeonInitialize() { }
 
     public static void initialize() {
         new BestRouteMod();
@@ -66,26 +58,25 @@ public class BestRouteMod implements StartGameSubscriber, StartActSubscriber {
     public static void generateAndShowBestPathFromCurrentNode(){
         if(bestPath != null) disableCurrentBestPath();
         bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
-        colorBestPath();
+        colorBestPath(roomClassesAndColors.get(roomClass));
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
         if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-        colorBestPath();
+        colorBestPath(roomClassesAndColors.get(roomClass));
     }
 
     // Private implementation
 
     // Coloring path methods
 
-    private static void colorBestPath(){
+    private static void colorBestPath(Color color){
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
-        Color usedColor = ColorPicker.getCurrentColorAndMoveIndex();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), usedColor);
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), color);
         }
     }
 
@@ -183,5 +174,10 @@ public class BestRouteMod implements StartGameSubscriber, StartActSubscriber {
 
     public static boolean currMapNodeAtWhale(){
         return AbstractDungeon.currMapNode.y == -1;
+    }
+
+    public static void resetMod(){
+        bestPath = null;
+        selectedRoomIndex = -1;
     }
 }
