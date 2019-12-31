@@ -1,10 +1,7 @@
 package best_route_mod;
 
 import basemod.BaseMod;
-import basemod.interfaces.OnStartBattleSubscriber;
-import basemod.interfaces.PostInitializeSubscriber;
-import basemod.interfaces.PostUpdateSubscriber;
-import basemod.interfaces.StartActSubscriber;
+import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Color;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
@@ -18,7 +15,7 @@ import java.util.Map;
 import java.util.Queue;
 
 @SpireInitializer
-public class BestRouteMod implements StartActSubscriber {
+public class BestRouteMod implements StartGameSubscriber, StartActSubscriber {
 
     public static Class roomClass;
     public static MapPath bestPath;
@@ -32,11 +29,25 @@ public class BestRouteMod implements StartActSubscriber {
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }
 
-    @Override
-    public void receiveStartAct() {
-        // Reset
+    boolean alreadyResetMod;
+
+    private void resetMod(){
+        System.out.println("Started act");
         bestPath = null;
         selectedRoomIndex = -1;
+        ColorPicker.resetPicker();
+        alreadyResetMod = true;
+    }
+
+    @Override
+    public void receiveStartGame() {
+        resetMod();
+    }
+
+
+    @Override
+    public void receiveStartAct() {
+        resetMod();
     }
 
     public static void initialize() {
@@ -80,14 +91,8 @@ public class BestRouteMod implements StartActSubscriber {
 
     private static void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode, Color color) {
         int xCoordinateOfStartingNode = srcNode.y == 0 ? getArrayIndexOfStartingNode(srcNode.x) : srcNode.x;
-        MapEdge edge = AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x));
-        // TODO: verify color of edge is black by default
-        boolean edgeAlreadyColoredByMod = edge.taken && edge.color != Color.BLACK;
-
-        if (!edgeAlreadyColoredByMod) {
-            AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
-            AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
-        }
+        AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
+        AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
     }
 
     // Disable path methods

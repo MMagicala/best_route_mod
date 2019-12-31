@@ -43,6 +43,7 @@ public class LegendItemPatch {
     public static class LegendItemRenderPatch{
         @SpirePostfixPatch
         public static void Postfix(LegendItem __instance, SpriteBatch sb, Color c){
+            System.out.println(BestRouteMod.selectedRoomIndex);
             int index = (int) ReflectionHacks.getPrivate(__instance, LegendItem.class, "index");
             String labelString = (String) ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
             if(index != BestRouteMod.selectedRoomIndex){
