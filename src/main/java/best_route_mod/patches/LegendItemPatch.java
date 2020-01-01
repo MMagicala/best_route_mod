@@ -21,15 +21,19 @@ public class LegendItemPatch {
         @SpirePostfixPatch
         public static void Postfix(Legend __instance) {
             for (int i = 0; i < __instance.items.size(); i++) {
-                if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered && InputHelper.justClickedLeft) {
-                    BestRouteMod.selectedRoomIndex = i;
-                    Class selectedRoomClass = (Class) BestRouteMod.roomClassesAndColors.keySet().toArray()[i];
-                    BestRouteMod.setRoomClass(selectedRoomClass);
-                    // Regenerate new best path
-                    if (!BestRouteMod.atBeginningOfAct()) {
-                        BestRouteMod.generateAndShowBestPathFromCurrentNode();
-                    } else {
-                        BestRouteMod.generateAndShowBestPathFromStartingNodes();
+                if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {
+                    if (InputHelper.justClickedLeft) {
+                        // Raise priority of a room comparison by providing the room class of the comparison
+                        BestRouteMod.raiseComparisonPriority(i);
+                        // Regenerate new best path
+                        // TODO: don't keep order in a separate list, use ReflectionHacks instead
+                        if (!BestRouteMod.atBeginningOfAct()) {
+                            BestRouteMod.generateAndShowBestPathFromCurrentNode();
+                        } else {
+                            BestRouteMod.generateAndShowBestPathFromStartingNodes();
+                        }
+                    }else if(InputHelper.justClickedRight){
+                        // Lower priority of a room being compared
                     }
                 }
             }
