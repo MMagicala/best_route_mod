@@ -25,19 +25,28 @@ public class LegendItemPatch {
     )
     public static class LeftClickLegendItemPatch {
         // TODO: work on this
-        static boolean isMiddleButtonJustPressed = false;
+        private static boolean isMiddleButtonJustPressed = false;
+        private static boolean isMiddleButtonPressedAfterFirstCycle = false;
         @SpirePostfixPatch
         public static void Postfix(Legend __instance) {
             // Middle button just pressed code
-            if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE) && !isMiddleButtonJustPressed){
-                isMiddleButtonJustPressed = true;
+
+            // Disable middle button just pressed if it was true last cycle
+            if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)){
+                if(!isMiddleButtonJustPressed && !isMiddleButtonPressedAfterFirstCycle){
+                    isMiddleButtonJustPressed = true;
+                }else{
+                    isMiddleButtonJustPressed = false;
+                    isMiddleButtonPressedAfterFirstCycle = true;
+                }
             }else{
                 isMiddleButtonJustPressed = false;
+                isMiddleButtonPressedAfterFirstCycle = false;
             }
 
             for (int i = 0; i < __instance.items.size(); i++) {
+                Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {
-                    Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
                     // Check for key presses
                     boolean signInverted = false;
                     char newSign = BestRouteMod.getSignOfRoomClass(roomClass) == '>' ? '<' : '>';
@@ -58,7 +67,7 @@ public class LegendItemPatch {
                         // Disable highlighted path if all the priority indices are zero
                         if(BestRouteMod.allPriorityIndicesAreZero()){
                             BestRouteMod.disableCurrentBestPath();
-                            break;
+                            continue;
                         }
                         // Regenerate new best path
                         if (!BestRouteMod.atBeginningOfAct()) {
@@ -66,23 +75,22 @@ public class LegendItemPatch {
                         } else {
                             BestRouteMod.generateAndShowBestPathFromStartingNodes();
                         }
-                        // Update legend item text
-                        String labelString = (String) ReflectionHacks.getPrivate(__instance.items.get(i), LegendItem.class, "label");
-                        int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
-                        char sign = BestRouteMod.getSignOfRoomClass(roomClass);
-                        // Clear any existing changes made to the label
-                        if(labelString.endsWith(")")) {
-                            int leftParenIndex = labelString.lastIndexOf(" (");
-                            labelString = labelString.substring(0, leftParenIndex);
-                            ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", labelString);
-                        }
-                        // Print the priority index and sign
-                        if (priorityIndex > 0) {
-                            String newLabelString = labelString + " (" + priorityIndex + ", " + sign + ")";
-                            ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", newLabelString);
-                        }
                     }
                 }
+
+                // Update legend item text
+                String labelString = (String) ReflectionHacks.getPrivate(__instance.items.get(i), LegendItem.class, "label");
+                int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
+                char sign = BestRouteMod.getSignOfRoomClass(roomClass);
+                // Clear any existing changes made to the label
+                if(labelString.endsWith(")")) {
+                    int leftParenIndex = labelString.lastIndexOf(" (");
+                    labelString = labelString.substring(0, leftParenIndex);
+                    ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", labelString);
+                }
+                // Print the priority index and sign
+                String newLabelString = labelString + " (" + priorityIndex + ", " + sign + ")";
+                ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", newLabelString);
             }
         }
     }
