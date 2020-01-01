@@ -49,14 +49,19 @@ public class LegendItemPatch {
     )
     public static class LegendItemRenderPatch{
         @SpirePostfixPatch
-        public static void Postfix(LegendItem __instance, SpriteBatch sb, Color c){
-            int index = (int) ReflectionHacks.getPrivate(__instance, LegendItem.class, "index");
+        public static void Postfix(LegendItem __instance, SpriteBatch sb, Color c) {
+            int legendIndex = (int) ReflectionHacks.getPrivate(__instance, LegendItem.class, "index");
             String labelString = (String) ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
-            if(index != BestRouteMod.selectedRoomIndex){
-                if(labelString.charAt(0) == '>') ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", labelString.substring(2));
-                return;
+            Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(legendIndex);
+            int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
+
+            if (priorityIndex > 0 && !labelString.endsWith(")")) {
+                String newLabelString = labelString + " (" + priorityIndex + ")";
+                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", newLabelString);
+            }else if(priorityIndex == 0 && labelString.endsWith(")")){
+                int leftParenIndex = labelString.lastIndexOf('(');
+                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", labelString.substring(0, leftParenIndex));
             }
-            if(labelString.charAt(0) != '>') ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", "> " + labelString);
         }
     }
 }

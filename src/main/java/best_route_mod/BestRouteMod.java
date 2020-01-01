@@ -55,6 +55,10 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // API methods
 
+    public static int getPriorityIndexOfRoomClass(Class<?> roomClass){
+        return roomClassProperties.get(roomClass).getPriorityLevel();
+    }
+
     public static Class<?> getRoomClassByLegendIndex(int index){
         return (Class<?>)roomClassProperties.keySet().toArray()[index];
     }
@@ -165,48 +169,43 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             MapPath currentPath = findBestPathFromNode(node);
             if (bestPath == null || currentPathCriteriaExceedsBestPath(bestPath, currentPath)) {
                 bestPath = currentPath;
-            }else if(currentPathCriteriaMatchesBestPath(bestPath, currentPath)){
-                continue;
             }
         }
         return bestPath;
     }
 
     private static boolean currentPathCriteriaExceedsBestPath(MapPath bestPath, MapPath currentPath){
-        // TODO: work on priorities
-        for(int i = 1; i <= getNumActiveRoomClasses(); i++){
-            boolean currentReplacesBestPath = currentPath.getRoomCount(properties.getKey()) > bestPath.getRoomCount(properties.getKey());
-            if(properties.getValue().getSign() == '>' && currentReplacesBestPath){
-                return true;
-            }else{
-
-            }
-        }
-    }
-
-    private static boolean currentPathCriteriaMatchesBestPath(MapPath bestPath, MapPath currentPath){
         // Max possible number of priority levels
         for(int i = 1; i <= getNumActiveRoomClasses(); i++){
             ArrayList<Class<?>> roomClassesWithPriorityIndex = getRoomClassesWithPriorityIndex(i);
+            // Just skip to the next level to compare
+            // if(roomClassesWithPriorityIndex.isEmpty()) continue;
             for(Class<?> roomClass: roomClassesWithPriorityIndex){
-                if(currentPath.getRoomCount(roomClass) != bestPath.getRoomCount(roomClass)) return false;
+                boolean roomCountGreaterThan = (currentPath.getRoomCount(roomClass) > bestPath.getRoomCount(roomClass));
+                boolean roomCountLessThan = (currentPath.getRoomCount(roomClass) < bestPath.getRoomCount(roomClass));
+                boolean signGreaterThan = roomClassProperties.get(roomClass).getSign() == '>';
+                boolean signLessThan = roomClassProperties.get(roomClass).getSign() == '<';
+                if((roomCountGreaterThan && signGreaterThan) || (roomCountLessThan && signLessThan)) return true;
+                if(currentPath.getRoomCount(roomClass) == bestPath.getRoomCount(roomClass)) continue;
+                break;
             }
         }
+        return false;
     }
 
-    // TODO: work on this
     private static ArrayList<Class<?>> getRoomClassesWithPriorityIndex(int priorityIndex){
         ArrayList<Class<?>> roomClasses = new ArrayList<>();
-        for(int i = 0; i < roomClassProperties.size(); i++){
-            if(roomClassProperties.get().getPriorityLevel() == priorityIndex){
-                roomClasses.add(roomClassProperties.);
+        for(Map.Entry<Class<?>, RoomClassProperties> entry: roomClassProperties.entrySet()){
+            if(entry.getValue().getPriorityLevel() == priorityIndex){
+                roomClasses.add(entry.getKey());
             }
         }
+        return roomClasses;
     }
 
     private static ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node) {
         ArrayList<MapEdge> mapEdges = node.getEdges();
-        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = new ArrayList<MapRoomNode>();
+        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = new ArrayList<>();
         mapEdges.forEach(mapEdge -> {
             // The boss node is 2 levels above the last rest site nodes, don't count it since we can't access it on the
             // AbstractDungeon.map object
