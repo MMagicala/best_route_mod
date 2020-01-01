@@ -14,6 +14,7 @@ import java.util.*;
 @SpireInitializer
 public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
+    // TODO: work on having multiple best paths if all of their criterias are equal
     private static MapPath bestPath;
     private static LinkedHashMap<Class<?>, RoomClassProperties> roomClassProperties;
 
@@ -87,25 +88,25 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     public static void generateAndShowBestPathFromCurrentNode(){
         if(bestPath != null) disableCurrentBestPath();
         bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
-        colorBestPath(Color.RED);
+        colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
         if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
-        colorBestPath(Color.RED);
+        colorBestPath();
     }
 
     // Private implementation
 
     // Coloring path methods
 
-    private static void colorBestPath(Color color){
+    private static void colorBestPath(){
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), color);
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), Color.RED);
         }
     }
 
@@ -162,25 +163,43 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         MapPath bestPath = null;
         for (MapRoomNode node : nodes) {
             MapPath currentPath = findBestPathFromNode(node);
-            if (bestPath == null) {
+            if (bestPath == null || currentPathCriteriaExceedsBestPath(bestPath, currentPath)) {
                 bestPath = currentPath;
-            }else{
-
+            }else if(currentPathCriteriaMatchesBestPath(bestPath, currentPath)){
+                continue;
             }
         }
         return bestPath;
     }
 
-    private static boolean currentPathExceedsBestPath(MapPath bestPath, MapPath currentPath){
+    private static boolean currentPathCriteriaExceedsBestPath(MapPath bestPath, MapPath currentPath){
         // TODO: work on priorities
-        for(){
-            if(properties.getValue().isActive()){
-                boolean currentReplacesBestPath = currentPath.getRoomCount(properties.getKey()) > bestPath.getRoomCount(properties.getKey());
-                if(properties.getValue().getSign() == '>' && currentReplacesBestPath){
-                    return true;
-                }else{
+        for(int i = 1; i <= getNumActiveRoomClasses(); i++){
+            boolean currentReplacesBestPath = currentPath.getRoomCount(properties.getKey()) > bestPath.getRoomCount(properties.getKey());
+            if(properties.getValue().getSign() == '>' && currentReplacesBestPath){
+                return true;
+            }else{
 
-                }
+            }
+        }
+    }
+
+    private static boolean currentPathCriteriaMatchesBestPath(MapPath bestPath, MapPath currentPath){
+        // Max possible number of priority levels
+        for(int i = 1; i <= getNumActiveRoomClasses(); i++){
+            ArrayList<Class<?>> roomClassesWithPriorityIndex = getRoomClassesWithPriorityIndex(i);
+            for(Class<?> roomClass: roomClassesWithPriorityIndex){
+                if(currentPath.getRoomCount(roomClass) != bestPath.getRoomCount(roomClass)) return false;
+            }
+        }
+    }
+
+    // TODO: work on this
+    private static ArrayList<Class<?>> getRoomClassesWithPriorityIndex(int priorityIndex){
+        ArrayList<Class<?>> roomClasses = new ArrayList<>();
+        for(int i = 0; i < roomClassProperties.size(); i++){
+            if(roomClassProperties.get().getPriorityLevel() == priorityIndex){
+                roomClasses.add(roomClassProperties.);
             }
         }
     }
