@@ -22,24 +22,27 @@ public class LegendItemPatch {
         public static void Postfix(Legend __instance) {
             for (int i = 0; i < __instance.items.size(); i++) {
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {
+                    Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
+                    boolean priorityChanged = false;
                     if (InputHelper.justClickedLeft) {
-                        // Raise priority of a room comparison by providing the room class of the comparison
-                        BestRouteMod.raiseComparisonPriority(i);
+                        priorityChanged = BestRouteMod.raiseRoomClassPriority(roomClass);
+                    }else if(InputHelper.justClickedRight){
+                        priorityChanged = BestRouteMod.lowerRoomClassPriority(roomClass);
+                    }
+                    if(priorityChanged){
                         // Regenerate new best path
-                        // TODO: don't keep order in a separate list, use ReflectionHacks instead
                         if (!BestRouteMod.atBeginningOfAct()) {
                             BestRouteMod.generateAndShowBestPathFromCurrentNode();
                         } else {
                             BestRouteMod.generateAndShowBestPathFromStartingNodes();
                         }
-                    }else if(InputHelper.justClickedRight){
-                        // Lower priority of a room being compared
                     }
                 }
             }
         }
     }
 
+    // TODO: render according to priority indices and signs
     @SpirePatch(
             clz=LegendItem.class,
             method="render"
