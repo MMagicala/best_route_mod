@@ -48,17 +48,14 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     // first row of map only contains starting nodes, other rows always have 7 nodes
     // 0,-1 node is whale
 
-    private static int getNumActiveRoomClasses(){
-        int numActiveRoomClasses = 0;
-        for(RoomClassProperties properties: roomClassProperties.values()){
-            if(properties.isActive()){
-                numActiveRoomClasses++;
-            }
-        }
-        return numActiveRoomClasses;
-    }
-
     // API methods
+
+    public static boolean allPriorityIndicesAreZero(){
+        for(RoomClassProperties properties: roomClassProperties.values()){
+            if(properties.getPriorityLevel() > 0) return false;
+        }
+        return true;
+    }
 
     public static int getPriorityIndexOfRoomClass(Class<?> roomClass){
         return roomClassProperties.get(roomClass).getPriorityLevel();
@@ -80,7 +77,8 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     // > 0 - active
     // TODO: fix this
     public static boolean raiseRoomClassPriority(Class<?> roomClass){
-        if(roomClassProperties.get(roomClass).getPriorityLevel() < getNumActiveRoomClasses()){
+        int priorityLevel = roomClassProperties.get(roomClass).getPriorityLevel();
+        if(priorityLevel < roomClassProperties.size()){
             roomClassProperties.get(roomClass).incrementPriorityLevel();
             return true;
         }
@@ -93,7 +91,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             // Check for priority indices above the maximum limit and adjust
             if(!roomClassProperties.get(roomClass).isActive()){
                 for(RoomClassProperties properties: roomClassProperties.values()){
-                    if(properties.getPriorityLevel() > getNumActiveRoomClasses()){
+                    if(properties.getPriorityLevel() > roomClassProperties.size()){
                         properties.decrementPriorityLevel();
                     }
                 }
@@ -136,7 +134,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // Disable path methods
 
-    private static void disableCurrentBestPath() {
+    public static void disableCurrentBestPath() {
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
             disableEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1));
@@ -190,7 +188,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     private static boolean currentPathCriteriaExceedsBestPath(MapPath bestPath, MapPath currentPath){
         // Max possible number of priority levels
-        for(int i = 1; i <= getNumActiveRoomClasses(); i++){
+        for(int i = 1; i <= roomClassProperties.size(); i++){
             ArrayList<Class<?>> roomClassesWithPriorityIndex = getRoomClassesWithPriorityIndex(i);
             // Just skip to the next level to compare
             // if(roomClassesWithPriorityIndex.isEmpty()) continue;

@@ -24,58 +24,65 @@ public class LegendItemPatch {
             method="update"
     )
     public static class LeftClickLegendItemPatch {
+        // TODO: work on this
+        static boolean isMiddleButtonJustPressed = false;
         @SpirePostfixPatch
         public static void Postfix(Legend __instance) {
+            // Middle button just pressed code
+            if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE) && !isMiddleButtonJustPressed){
+                isMiddleButtonJustPressed = true;
+            }else{
+                isMiddleButtonJustPressed = false;
+            }
+
             for (int i = 0; i < __instance.items.size(); i++) {
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {
                     Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
                     // Check for key presses
                     boolean signInverted = false;
                     char newSign = BestRouteMod.getSignOfRoomClass(roomClass) == '>' ? '<' : '>';
-                    if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)){
+                    if(isMiddleButtonJustPressed){
                         BestRouteMod.setSignOfRoomClass(roomClass, newSign);
                         signInverted = true;
                     }
 
                     // Check for mouse clicks
                     boolean priorityChanged = false;
-                    if (InputHelper.justClickedLeft) {
+                    // Middle button also left clicks so check for that
+                    if (InputHelper.justClickedLeft && !Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
                         priorityChanged = BestRouteMod.raiseRoomClassPriority(roomClass);
                     }else if(InputHelper.justClickedRight){
                         priorityChanged = BestRouteMod.lowerRoomClassPriority(roomClass);
                     }
                     if(priorityChanged || signInverted){
+                        // Disable highlighted path if all the priority indices are zero
+                        if(BestRouteMod.allPriorityIndicesAreZero()){
+                            BestRouteMod.disableCurrentBestPath();
+                            break;
+                        }
                         // Regenerate new best path
                         if (!BestRouteMod.atBeginningOfAct()) {
                             BestRouteMod.generateAndShowBestPathFromCurrentNode();
                         } else {
                             BestRouteMod.generateAndShowBestPathFromStartingNodes();
                         }
+                        // Update legend item text
+                        String labelString = (String) ReflectionHacks.getPrivate(__instance.items.get(i), LegendItem.class, "label");
+                        int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
+                        char sign = BestRouteMod.getSignOfRoomClass(roomClass);
+                        // Clear any existing changes made to the label
+                        if(labelString.endsWith(")")) {
+                            int leftParenIndex = labelString.lastIndexOf(" (");
+                            labelString = labelString.substring(0, leftParenIndex);
+                            ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", labelString);
+                        }
+                        // Print the priority index and sign
+                        if (priorityIndex > 0) {
+                            String newLabelString = labelString + " (" + priorityIndex + ", " + sign + ")";
+                            ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", newLabelString);
+                        }
                     }
                 }
-            }
-        }
-    }
-
-    @SpirePatch(
-            clz=LegendItem.class,
-            method="render"
-    )
-    public static class LegendItemRenderPatch{
-        @SpirePostfixPatch
-        public static void Postfix(LegendItem __instance, SpriteBatch sb, Color c) {
-            int legendIndex = (int) ReflectionHacks.getPrivate(__instance, LegendItem.class, "index");
-            String labelString = (String) ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
-            Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(legendIndex);
-            int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
-            char sign = BestRouteMod.getSignOfRoomClass(roomClass);
-
-            if (priorityIndex > 0 && !labelString.endsWith(")")) {
-                String newLabelString = labelString + " (" + priorityIndex + ", " + sign + ")";
-                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", newLabelString);
-            }else if(priorityIndex == 0 && labelString.endsWith(")")){
-                int leftParenIndex = labelString.lastIndexOf('(');
-                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", labelString.substring(0, leftParenIndex));
             }
         }
     }
