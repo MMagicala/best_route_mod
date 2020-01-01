@@ -3,7 +3,7 @@ package best_route_mod;
 import com.badlogic.gdx.graphics.Color;
 
 public class RoomClassProperties {
-    private char sign;
+    public char sign;
     private int priorityLevel; // default = 0
 
     public RoomClassProperties(){
@@ -21,10 +21,6 @@ public class RoomClassProperties {
 
     public void decrementPriorityLevel(){
         priorityLevel--;
-    }
-
-    public char getSign(){
-        return sign;
     }
 
     public boolean isActive(){

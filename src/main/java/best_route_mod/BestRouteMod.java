@@ -16,6 +16,11 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // TODO: work on having multiple best paths if all of their criterias are equal
     private static MapPath bestPath;
+
+    public static MapPath getBestPath(){
+        return bestPath;
+    }
+
     private static LinkedHashMap<Class<?>, RoomClassProperties> roomClassProperties;
 
     public BestRouteMod() {
@@ -59,12 +64,21 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return roomClassProperties.get(roomClass).getPriorityLevel();
     }
 
+    public static char getSignOfRoomClass(Class<?> roomClass){
+        return roomClassProperties.get(roomClass).sign;
+    }
+
+    public static void setSignOfRoomClass(Class<?> roomClass, char sign){
+        roomClassProperties.get(roomClass).sign = sign;
+    }
+
     public static Class<?> getRoomClassByLegendIndex(int index){
         return (Class<?>)roomClassProperties.keySet().toArray()[index];
     }
 
     // 0 - not active
     // > 0 - active
+    // TODO: fix this
     public static boolean raiseRoomClassPriority(Class<?> roomClass){
         if(roomClassProperties.get(roomClass).getPriorityLevel() < getNumActiveRoomClasses()){
             roomClassProperties.get(roomClass).incrementPriorityLevel();
@@ -183,8 +197,8 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             for(Class<?> roomClass: roomClassesWithPriorityIndex){
                 boolean roomCountGreaterThan = (currentPath.getRoomCount(roomClass) > bestPath.getRoomCount(roomClass));
                 boolean roomCountLessThan = (currentPath.getRoomCount(roomClass) < bestPath.getRoomCount(roomClass));
-                boolean signGreaterThan = roomClassProperties.get(roomClass).getSign() == '>';
-                boolean signLessThan = roomClassProperties.get(roomClass).getSign() == '<';
+                boolean signGreaterThan = roomClassProperties.get(roomClass).sign == '>';
+                boolean signLessThan = roomClassProperties.get(roomClass).sign == '<';
                 if((roomCountGreaterThan && signGreaterThan) || (roomCountLessThan && signLessThan)) return true;
                 if(currentPath.getRoomCount(roomClass) == bestPath.getRoomCount(roomClass)) continue;
                 break;
