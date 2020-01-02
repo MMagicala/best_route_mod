@@ -3,18 +3,24 @@ package best_route_mod;
 import basemod.BaseMod;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Color;
+import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
+import com.megacrit.cardcrawl.relics.AbstractRelic;
+import com.megacrit.cardcrawl.relics.WingBoots;
 import com.megacrit.cardcrawl.rooms.*;
 
+import java.io.IOException;
 import java.util.*;
 
 @SpireInitializer
 public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // TODO: work on having multiple best paths if all of their criterias are equal
+    // TODO: in game configurations
+    // TODO; add support for winged boots
     private static MapPath bestPath;
 
     public static MapPath getBestPath(){
@@ -41,7 +47,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return new Color(r/255f, g/255f, b/255f, 1);
     }
 
-    // Just use this since we need to subscribe to at least one thing
+    // TODO: presets
     @Override
     public void receivePostDungeonInitialize() { }
 
@@ -137,7 +143,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         // Default color if more than one room class at lowest level
         Color colorToUse = Color.CYAN;
         if(roomClassesAtLowestPriorityIndex.size() == 1){
-            colorToUse = roomClassProperties.get(roomClassesAtLowestPriorityIndex.get(0)).getColor();
+            colorToUse = getColorOfRoomClass(roomClassesAtLowestPriorityIndex.get(0));
         }
 
         // Color the edges in the map
@@ -178,8 +184,18 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return startingNodes;
     }
 
+    private static int getRelicCounter(Class<?> relicClass){
+        for(AbstractRelic relic: AbstractDungeon.player.relics){
+            if(relic.getClass() == relicClass){
+                return relic.counter;
+            }
+        }
+    }
+
     // Travel all the nodes on the map (except for the boss node)
     private static MapPath findBestPathFromNode(MapRoomNode node) {
+        int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
+        // TODO: here
         ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
         // Last node will always be a campfire
         if (adjacentNodesAboveGivenNode.isEmpty()) {
@@ -194,7 +210,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
         return bestPath;
     }
-
 
     private static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
         MapPath bestPath = null;
