@@ -70,7 +70,7 @@ public class LegendItemPatch {
                             continue;
                         }
                         // Regenerate new best path
-                        if (!BestRouteMod.atBeginningOfAct()) {
+                        if (AbstractDungeon.firstRoomChosen) {
                             BestRouteMod.generateAndShowBestPathFromCurrentNode();
                         } else {
                             BestRouteMod.generateAndShowBestPathFromStartingNodes();

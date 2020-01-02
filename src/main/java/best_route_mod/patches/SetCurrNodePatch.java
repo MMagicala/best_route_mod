@@ -13,9 +13,9 @@ import com.megacrit.cardcrawl.map.MapRoomNode;
 )
 public class SetCurrNodePatch {
     @SpirePostfixPatch
+    // When player moves up the map
     public static void Postfix() {
-        // If the best path was already set, update it
-        if (!BestRouteMod.atBeginningOfAct() && BestRouteMod.getBestPath() != null) {
+        if (AbstractDungeon.firstRoomChosen) {
             BestRouteMod.generateAndShowBestPathFromCurrentNode();
         }
     }

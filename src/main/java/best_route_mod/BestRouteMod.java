@@ -15,6 +15,7 @@ import java.util.*;
 public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // TODO: work on having multiple best paths if all of their criterias are equal
+    // TODO: work on merging colors
     private static MapPath bestPath;
 
     public static MapPath getBestPath(){
@@ -52,7 +53,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     public static boolean allPriorityIndicesAreZero(){
         for(RoomClassProperties properties: roomClassProperties.values()){
-            if(properties.getPriorityLevel() > 0) return false;
+            if(properties.isActive()) return false;
         }
         return true;
     }
@@ -75,7 +76,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // 0 - not active
     // > 0 - active
-    // TODO: fix this
     public static boolean raiseRoomClassPriority(Class<?> roomClass){
         int priorityLevel = roomClassProperties.get(roomClass).getPriorityLevel();
         if(priorityLevel < roomClassProperties.size()){
@@ -86,7 +86,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     }
 
     public static boolean lowerRoomClassPriority(Class<?> roomClass){
-        if(roomClassProperties.get(roomClass).getPriorityLevel() > 0){
+        if(roomClassProperties.get(roomClass).isActive()){
             roomClassProperties.get(roomClass).decrementPriorityLevel();
             return true;
         }
@@ -94,12 +94,14 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     }
 
     public static void generateAndShowBestPathFromCurrentNode(){
+        if(allPriorityIndicesAreZero()) return;
         if(bestPath != null) disableCurrentBestPath();
         bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
         colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
+        if(allPriorityIndicesAreZero()) return;
         if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
@@ -243,12 +245,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return -1;
     }
 
-    // Patch: Sometimes player can start at (15, -1), not just (-1, 0)
-    public static boolean atBeginningOfAct(){
-        return AbstractDungeon.currMapNode.y == -1 || (AbstractDungeon.currMapNode.x == -1 && AbstractDungeon.currMapNode.y == 15);
-    }
-
-    public static void resetMod(){
+    public static void resetBestPath(){
         bestPath = null;
     }
 }
