@@ -5,11 +5,17 @@ import com.badlogic.gdx.graphics.Color;
 public class RoomClassProperties {
     public char sign;
     private int priorityLevel; // default = 0
+    private Color color;
     // TODO: add color
 
-    public RoomClassProperties(){
+    public RoomClassProperties(Color color){
         sign = '>';
         priorityLevel = 0;
+        this.color = color;
+    }
+
+    public Color getColor(){
+        return color;
     }
 
     public int getPriorityLevel(){

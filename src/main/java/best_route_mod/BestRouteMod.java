@@ -15,7 +15,6 @@ import java.util.*;
 public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // TODO: work on having multiple best paths if all of their criterias are equal
-    // TODO: work on merging colors
     private static MapPath bestPath;
 
     public static MapPath getBestPath(){
@@ -27,15 +26,19 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     public BestRouteMod() {
         roomClassProperties = new LinkedHashMap<>();
         // Same order as legend items
-        roomClassProperties.put(EventRoom.class, new RoomClassProperties());
-        roomClassProperties.put(ShopRoom.class, new RoomClassProperties());
-        roomClassProperties.put(TreasureRoom.class, new RoomClassProperties());
-        roomClassProperties.put(RestRoom.class, new RoomClassProperties());
-        roomClassProperties.put(MonsterRoom.class, new RoomClassProperties());
-        roomClassProperties.put(MonsterRoomElite.class, new RoomClassProperties());
+        roomClassProperties.put(EventRoom.class, new RoomClassProperties(createColorFrom255(0,0, 136)));
+        roomClassProperties.put(ShopRoom.class, new RoomClassProperties(createColorFrom255(68,0, 136)));
+        roomClassProperties.put(TreasureRoom.class, new RoomClassProperties(createColorFrom255(136,136, 0)));
+        roomClassProperties.put(RestRoom.class, new RoomClassProperties(createColorFrom255(0,136, 0)));
+        roomClassProperties.put(MonsterRoom.class, new RoomClassProperties(createColorFrom255(136,0, 0)));
+        roomClassProperties.put(MonsterRoomElite.class, new RoomClassProperties(createColorFrom255(136,68, 0)));
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
+    }
+
+    private Color createColorFrom255(int r, int g, int b){
+        return new Color(r/255f, g/255f, b/255f, 1);
     }
 
     // Just use this since we need to subscribe to at least one thing
@@ -56,6 +59,19 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             if(properties.isActive()) return false;
         }
         return true;
+    }
+
+    private static int getLowestPriorityIndexWithRoom(){
+        int lowestPriorityIndex = -1;
+        for(RoomClassProperties properties: roomClassProperties.values()){
+            if(properties.isActive() && (properties.getPriorityLevel() < lowestPriorityIndex || lowestPriorityIndex == -1))
+                lowestPriorityIndex = properties.getPriorityLevel();
+        }
+        return lowestPriorityIndex;
+    }
+
+    private static Color getColorOfRoomClass(Class<?> roomClass){
+        return roomClassProperties.get(roomClass).getColor();
     }
 
     public static int getPriorityIndexOfRoomClass(Class<?> roomClass){
@@ -113,6 +129,26 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     // Coloring path methods
 
     private static void colorBestPath(){
+        // Determine color to use using the lowest priority index that contains a room
+        int lowestPriorityIndex = getLowestPriorityIndexWithRoom();
+        // if(lowestPriorityIndex == -1) return; this should not happen
+        ArrayList<Class<?>> roomClassesAtLowestPriorityIndex = getRoomClassesWithPriorityIndex(lowestPriorityIndex);
+
+/*
+        float r = 0, g = 0, b = 0;
+        // Find the average of the colors
+        for(Class<?> roomClass: roomClassesAtLowestPriorityIndex){
+            RoomClassProperties properties = roomClassProperties.get(roomClass);
+            r += properties.getColor().r;
+            g += properties.getColor().g;
+            b += properties.getColor().b;
+        }
+        float roomClassCount = (float)roomClassesAtLowestPriorityIndex.size();
+        Color averageColor = new Color(r/roomClassCount, g/roomClassCount, b/roomClassCount, 1);
+*/
+
+        // TODO: fix colors!!!
+
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
