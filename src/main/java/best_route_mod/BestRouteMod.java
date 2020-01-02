@@ -126,7 +126,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         if(allPriorityIndicesAreZero()) return;
         if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-        bestPath = findBestPathFromAdjacentOrStartingNodes(startingNodes);
+        bestPath = findBestPathFromJumpableNodes(startingNodes);
         colorBestPath();
     }
 
@@ -149,6 +149,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
+            // TODO: Check if the edge exists or not (because of winged boots)
             colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), colorToUse);
         }
     }
@@ -190,28 +191,37 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
                 return relic.counter;
             }
         }
+        // Should not happen since we know the relic exists and has a counter >= 0
+        return -1;
+    }
+
+    private static ArrayList<MapRoomNode> getNodesAtYCoordinate(int yCoordinate){
+        return AbstractDungeon.map.get(yCoordinate);
     }
 
     // Travel all the nodes on the map (except for the boss node)
     private static MapPath findBestPathFromNode(MapRoomNode node) {
+        // Take wing boots into account too
         int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
-        // TODO: here
-        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = getAdjacentNodesAbove(node);
+        // TODO: also work on path rendering so null exceptions dont occur
+        // TODO: also check for edge cases with finding nodes (maybe bosses dont show up on map anyways?)
+        // TODO: or if all row is the same or prioritize routes with no wing boots usage
+        ArrayList<MapRoomNode> jumpableNodes = wingBootsCounter > 0 ? getNodesAtYCoordinate(node.y) : getAdjacentNodesAbove(node);
         // Last node will always be a campfire
-        if (adjacentNodesAboveGivenNode.isEmpty()) {
+        if (jumpableNodes.isEmpty()) {
             HashMap<Class, Integer> roomCounts = new HashMap<>();
             roomCounts.put(RestRoom.class, 1);
             return new MapPath(node, roomCounts);
         }
 
-        MapPath bestPath = findBestPathFromAdjacentOrStartingNodes(adjacentNodesAboveGivenNode);
+        MapPath bestPath = findBestPathFromJumpableNodes(jumpableNodes);
         bestPath.pushNodeToFrontOfPath(node);
         bestPath.incrementRoomCount(node.room.getClass());
 
         return bestPath;
     }
 
-    private static MapPath findBestPathFromAdjacentOrStartingNodes(ArrayList<MapRoomNode> nodes) {
+    private static MapPath findBestPathFromJumpableNodes(ArrayList<MapRoomNode> nodes) {
         MapPath bestPath = null;
         for (MapRoomNode node : nodes) {
             MapPath currentPath = findBestPathFromNode(node);
