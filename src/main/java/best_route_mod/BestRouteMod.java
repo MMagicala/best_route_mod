@@ -26,12 +26,12 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     public BestRouteMod() {
         roomClassProperties = new LinkedHashMap<>();
         // Same order as legend items
-        roomClassProperties.put(EventRoom.class, new RoomClassProperties(createColorFrom255(0,0, 136)));
-        roomClassProperties.put(ShopRoom.class, new RoomClassProperties(createColorFrom255(68,0, 136)));
-        roomClassProperties.put(TreasureRoom.class, new RoomClassProperties(createColorFrom255(136,136, 0)));
-        roomClassProperties.put(RestRoom.class, new RoomClassProperties(createColorFrom255(0,136, 0)));
-        roomClassProperties.put(MonsterRoom.class, new RoomClassProperties(createColorFrom255(136,0, 0)));
-        roomClassProperties.put(MonsterRoomElite.class, new RoomClassProperties(createColorFrom255(136,68, 0)));
+        roomClassProperties.put(EventRoom.class, new RoomClassProperties(createColorFrom255(0,0, 255)));
+        roomClassProperties.put(ShopRoom.class, new RoomClassProperties(createColorFrom255(127,0, 255)));
+        roomClassProperties.put(TreasureRoom.class, new RoomClassProperties(createColorFrom255(255,255, 0)));
+        roomClassProperties.put(RestRoom.class, new RoomClassProperties(createColorFrom255(0,255, 0)));
+        roomClassProperties.put(MonsterRoom.class, new RoomClassProperties(createColorFrom255(255,0, 0)));
+        roomClassProperties.put(MonsterRoomElite.class, new RoomClassProperties(createColorFrom255(255,127, 0)));
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
@@ -134,25 +134,16 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         // if(lowestPriorityIndex == -1) return; this should not happen
         ArrayList<Class<?>> roomClassesAtLowestPriorityIndex = getRoomClassesWithPriorityIndex(lowestPriorityIndex);
 
-/*
-        float r = 0, g = 0, b = 0;
-        // Find the average of the colors
-        for(Class<?> roomClass: roomClassesAtLowestPriorityIndex){
-            RoomClassProperties properties = roomClassProperties.get(roomClass);
-            r += properties.getColor().r;
-            g += properties.getColor().g;
-            b += properties.getColor().b;
+        // Default color if more than one room class at lowest level
+        Color colorToUse = Color.CYAN;
+        if(roomClassesAtLowestPriorityIndex.size() == 1){
+            colorToUse = roomClassProperties.get(roomClassesAtLowestPriorityIndex.get(0)).getColor();
         }
-        float roomClassCount = (float)roomClassesAtLowestPriorityIndex.size();
-        Color averageColor = new Color(r/roomClassCount, g/roomClassCount, b/roomClassCount, 1);
-*/
-
-        // TODO: fix colors!!!
 
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), Color.RED);
+            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), colorToUse);
         }
     }
 
