@@ -118,16 +118,13 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     public static void generateAndShowBestPathFromCurrentNode(){
         if(allPriorityIndicesAreZero()) return;
         if(bestPath != null) disableCurrentBestPath();
-        // Take wing boots into account too
-        int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
-        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode, wingBootsCounter);
+        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
         colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
         if(allPriorityIndicesAreZero()) return;
         if(bestPath != null) disableCurrentBestPath();
-        int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromJumpableNodes(startingNodes);
         colorBestPath();
@@ -203,12 +200,13 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     }
 
     // Travel all the nodes on the map (except for the boss node)
-    private static MapPath findBestPathFromNode(MapRoomNode node, int theoreticalWingBootsCount) {
+    private static MapPath findBestPathFromNode(MapRoomNode node) {
+        // Take wing boots into account too
+        int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
         // TODO: also work on path rendering so null exceptions dont occur
         // TODO: also check for edge cases with finding nodes (maybe bosses dont show up on map anyways?)
         // TODO: or if all row is the same or prioritize routes with no wing boots usage
-        ArrayList<MapRoomNode> jumpableNodes = theoreticalWingBootsCount > 0 ? getNodesAtYCoordinate(node.y) :
-                getAdjacentNodesAbove(node);
+        ArrayList<MapRoomNode> jumpableNodes = wingBootsCounter > 0 ? getNodesAtYCoordinate(node.y) : getAdjacentNodesAbove(node);
         // Last node will always be a campfire
         if (jumpableNodes.isEmpty()) {
             HashMap<Class, Integer> roomCounts = new HashMap<>();
