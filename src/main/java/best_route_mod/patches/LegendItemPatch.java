@@ -24,7 +24,6 @@ public class LegendItemPatch {
             method="update"
     )
     public static class LeftClickLegendItemPatch {
-        // TODO: work on this
         private static boolean isMiddleButtonJustPressed = false;
         private static boolean isMiddleButtonPressedAfterFirstCycle = false;
         @SpirePostfixPatch
@@ -65,13 +64,14 @@ public class LegendItemPatch {
                     }
                     if(priorityChanged || signInverted){
                         // Disable highlighted path if all the priority indices are zero
+                        // TODO: put this code in a sep method?
                         if(BestRouteMod.allPriorityIndicesAreZero()){
                             BestRouteMod.disableCurrentBestPath();
                             continue;
                         }
                         // Regenerate new best path
                         if (AbstractDungeon.firstRoomChosen) {
-                            BestRouteMod.generateAndShowBestPathFromCurrentNode();
+                            BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
                         } else {
                             BestRouteMod.generateAndShowBestPathFromStartingNodes();
                         }

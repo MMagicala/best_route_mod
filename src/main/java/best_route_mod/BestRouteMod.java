@@ -17,15 +17,7 @@ import java.util.*;
 
 @SpireInitializer
 public class BestRouteMod implements PostDungeonInitializeSubscriber {
-
-    // TODO: work on having multiple best paths if all of their criterias are equal
-    // TODO: in game configurations
-    // TODO; add support for winged boots
-    private static MapPath bestPath;
-
-    public static MapPath getBestPath(){
-        return bestPath;
-    }
+    public static MapPath bestPath;
 
     private static LinkedHashMap<Class<?>, RoomClassProperties> roomClassProperties;
 
@@ -47,7 +39,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return new Color(r/255f, g/255f, b/255f, 1);
     }
 
-    // TODO: presets
     @Override
     public void receivePostDungeonInitialize() { }
 
@@ -115,18 +106,17 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return false;
     }
 
-    public static void generateAndShowBestPathFromCurrentNode(){
-        if(allPriorityIndicesAreZero()) return;
-        if(bestPath != null) disableCurrentBestPath();
-        bestPath = findBestPathFromNode(AbstractDungeon.currMapNode);
+    public static void generateAndShowBestPathFromNode(MapRoomNode node){
+        MapPath oldBestPath = new MapPath(bestPath);
+        bestPath = findBestPathFromNode(node);
+        disablePath(oldBestPath);
         colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
-        if(allPriorityIndicesAreZero()) return;
-        if(bestPath != null) disableCurrentBestPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromJumpableNodes(startingNodes);
+        disablePath(oldBestPath);
         colorBestPath();
     }
 
@@ -134,7 +124,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     // Coloring path methods
 
-    private static void colorBestPath(){
+    public static void colorBestPath(){
         // Determine color to use using the lowest priority index that contains a room
         int lowestPriorityIndex = getLowestPriorityIndexWithRoom();
         // if(lowestPriorityIndex == -1) return; this should not happen
@@ -149,7 +139,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         // Color the edges in the map
         ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
         for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            // TODO: Check if the edge exists or not (because of winged boots)
             colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), colorToUse);
         }
     }
@@ -185,28 +174,9 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return startingNodes;
     }
 
-    private static int getRelicCounter(Class<?> relicClass){
-        for(AbstractRelic relic: AbstractDungeon.player.relics){
-            if(relic.getClass() == relicClass){
-                return relic.counter;
-            }
-        }
-        // Should not happen since we know the relic exists and has a counter >= 0
-        return -1;
-    }
-
-    private static ArrayList<MapRoomNode> getNodesAtYCoordinate(int yCoordinate){
-        return AbstractDungeon.map.get(yCoordinate);
-    }
-
     // Travel all the nodes on the map (except for the boss node)
     private static MapPath findBestPathFromNode(MapRoomNode node) {
-        // Take wing boots into account too
-        int wingBootsCounter = AbstractDungeon.player.hasRelic(WingBoots.ID) ? getRelicCounter(WingBoots.class) : 0;
-        // TODO: also work on path rendering so null exceptions dont occur
-        // TODO: also check for edge cases with finding nodes (maybe bosses dont show up on map anyways?)
-        // TODO: or if all row is the same or prioritize routes with no wing boots usage
-        ArrayList<MapRoomNode> jumpableNodes = wingBootsCounter > 0 ? getNodesAtYCoordinate(node.y) : getAdjacentNodesAbove(node);
+        ArrayList<MapRoomNode> jumpableNodes = getAdjacentNodesAbove(node);
         // Last node will always be a campfire
         if (jumpableNodes.isEmpty()) {
             HashMap<Class, Integer> roomCounts = new HashMap<>();
@@ -214,7 +184,12 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             return new MapPath(node, roomCounts);
         }
 
-        MapPath bestPath = findBestPathFromJumpableNodes(jumpableNodes);
+        MapPath bestPath = null;
+        if(jumpableNodes.size() == 1){
+            bestPath = findBestPathFromNode(jumpableNodes.get(0));
+        }else {
+            bestPath = findBestPathFromJumpableNodes(jumpableNodes);
+        }
         bestPath.pushNodeToFrontOfPath(node);
         bestPath.incrementRoomCount(node.room.getClass());
 
@@ -295,9 +270,5 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
             }
         }
         return -1;
-    }
-
-    public static void resetBestPath(){
-        bestPath = null;
     }
 }

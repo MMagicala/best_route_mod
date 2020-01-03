@@ -14,8 +14,14 @@ public class MapPath {
     private HashMap<Class, Integer> roomCounts;
     private ArrayList<MapRoomNode> path;
 
+    // create an empty MapPath
     public MapPath(){
-        this(new ArrayList<MapRoomNode>(), new HashMap<Class, Integer>());
+        this(new ArrayList<>(),new HashMap<>());
+    }
+
+    // make a copy
+    public MapPath(MapPath original){
+        this(original.path, original.roomCounts);
     }
 
     public MapPath(MapRoomNode node, HashMap<Class, Integer> roomCounts){

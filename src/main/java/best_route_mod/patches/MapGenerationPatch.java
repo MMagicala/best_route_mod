@@ -17,7 +17,7 @@ public class MapGenerationPatch {
     public static class RegularGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
-            BestRouteMod.resetBestPath();
+            BestRouteMod.bestPath = null;
         }
     }
 
@@ -28,7 +28,7 @@ public class MapGenerationPatch {
     public static class SpecialGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
-            BestRouteMod.resetBestPath();
+            BestRouteMod.bestPath = null;
         }
     }
 
@@ -104,7 +104,7 @@ SaveFile.class
         @SpirePostfixPatch
         public static void Postfix() {
             if(!AbstractDungeon.firstRoomChosen) BestRouteMod.generateAndShowBestPathFromStartingNodes();
-            else BestRouteMod.generateAndShowBestPathFromCurrentNode();
+            else BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
         }
     }
 
@@ -120,7 +120,7 @@ SaveFile.class
         @SpirePostfixPatch
         public static void Postfix() {
             if(!AbstractDungeon.firstRoomChosen) BestRouteMod.generateAndShowBestPathFromStartingNodes();
-            else BestRouteMod.generateAndShowBestPathFromCurrentNode();
+            else BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
         }
     }
 
@@ -136,7 +136,7 @@ SaveFile.class
         @SpirePostfixPatch
         public static void Postfix() {
             if(!AbstractDungeon.firstRoomChosen) BestRouteMod.generateAndShowBestPathFromStartingNodes();
-            else BestRouteMod.generateAndShowBestPathFromCurrentNode();
+            else BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
         }
     }
 
@@ -152,7 +152,7 @@ SaveFile.class
         @SpirePostfixPatch
         public static void Postfix() {
             if(!AbstractDungeon.firstRoomChosen) BestRouteMod.generateAndShowBestPathFromStartingNodes();
-            else BestRouteMod.generateAndShowBestPathFromCurrentNode();
+            else BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
         }
     }
 }

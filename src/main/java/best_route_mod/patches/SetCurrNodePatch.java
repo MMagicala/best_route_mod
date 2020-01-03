@@ -16,7 +16,7 @@ public class SetCurrNodePatch {
     // When player moves up the map
     public static void Postfix() {
         if (AbstractDungeon.firstRoomChosen) {
-            BestRouteMod.generateAndShowBestPathFromCurrentNode();
+            BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
         }
     }
 }
