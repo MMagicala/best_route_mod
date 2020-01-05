@@ -109,62 +109,18 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
     public static void generateAndShowBestPathFromNode(MapRoomNode node){
         MapPath oldBestPath = new MapPath(bestPath);
         bestPath = findBestPathFromNode(node);
-        disablePath(oldBestPath);
+        // disablePath(oldBestPath);
         colorBestPath();
     }
 
     public static void generateAndShowBestPathFromStartingNodes(){
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
         bestPath = findBestPathFromJumpableNodes(startingNodes);
-        disablePath(oldBestPath);
+        // disablePath(oldBestPath);
         colorBestPath();
     }
 
     // Private implementation
-
-    // Coloring path methods
-
-    public static void colorBestPath(){
-        // Determine color to use using the lowest priority index that contains a room
-        int lowestPriorityIndex = getLowestPriorityIndexWithRoom();
-        // if(lowestPriorityIndex == -1) return; this should not happen
-        ArrayList<Class<?>> roomClassesAtLowestPriorityIndex = getRoomClassesWithPriorityIndex(lowestPriorityIndex);
-
-        // Default color if more than one room class at lowest level
-        Color colorToUse = Color.CYAN;
-        if(roomClassesAtLowestPriorityIndex.size() == 1){
-            colorToUse = getColorOfRoomClass(roomClassesAtLowestPriorityIndex.get(0));
-        }
-
-        // Color the edges in the map
-        ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
-        for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            colorEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1), colorToUse);
-        }
-    }
-
-    private static void colorEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode, Color color) {
-        int xCoordinateOfStartingNode = srcNode.y == 0 ? getArrayIndexOfStartingNode(srcNode.x) : srcNode.x;
-        AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).markAsTaken();
-        AbstractDungeon.map.get(srcNode.y).get(xCoordinateOfStartingNode).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).color = color;
-    }
-
-    // Disable path methods
-
-    public static void disableCurrentBestPath() {
-        ArrayList<MapRoomNode> pathListOfNodes = bestPath.getListOfNodes();
-        for (int i = 0; i < pathListOfNodes.size() - 1; i++) {
-            disableEdgeInMap(pathListOfNodes.get(i), pathListOfNodes.get(i + 1));
-        }
-    }
-
-    private static void disableEdgeInMap(MapRoomNode srcNode, MapRoomNode destNode){
-        if (srcNode.y == 0) {
-            AbstractDungeon.map.get(0).get(getArrayIndexOfStartingNode(srcNode.x)).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get((destNode.x))).taken = false;
-        } else {
-            AbstractDungeon.map.get(srcNode.y).get(srcNode.x).getEdgeConnectedTo(AbstractDungeon.map.get(destNode.y).get(destNode.x)).taken = false;
-        }
-    }
 
     // Traversal methods
 

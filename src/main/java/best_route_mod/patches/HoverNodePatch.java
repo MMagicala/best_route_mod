@@ -6,6 +6,7 @@ import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 
+// When the mouse hovers over this node on the map
 @SpirePatch(
         clz= MapRoomNode.class,
         method="update"
@@ -17,7 +18,8 @@ public class HoverNodePatch {
     private static MapPath previouslyRenderedPath;
     @SpirePostfixPatch
     public static void Postfix(MapRoomNode __instance) {
-        // just hovered code
+        // TODO: work on this
+        // First check if node was hovered or unhovered
         if (__instance.hb.hovered) {
             if (!justHovered && !hoveredAfterFirstCycle) {
                 justHovered = true;

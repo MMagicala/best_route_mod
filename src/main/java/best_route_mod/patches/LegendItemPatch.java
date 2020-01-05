@@ -16,6 +16,7 @@ import com.megacrit.cardcrawl.helpers.input.InputActionSet;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.Legend;
 import com.megacrit.cardcrawl.map.LegendItem;
+import com.megacrit.cardcrawl.map.MapRoomNode;
 
 public class LegendItemPatch {
 
@@ -29,8 +30,6 @@ public class LegendItemPatch {
         @SpirePostfixPatch
         public static void Postfix(Legend __instance) {
             // Middle button just pressed code
-
-            // Disable middle button just pressed if it was true last cycle
             if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)){
                 if(!isMiddleButtonJustPressed && !isMiddleButtonPressedAfterFirstCycle){
                     isMiddleButtonJustPressed = true;
@@ -43,6 +42,7 @@ public class LegendItemPatch {
                 isMiddleButtonPressedAfterFirstCycle = false;
             }
 
+            // Handle left, middle, and right click on legend items
             for (int i = 0; i < __instance.items.size(); i++) {
                 Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
                 if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {

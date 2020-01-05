@@ -1,6 +1,6 @@
 package best_route_mod;
 
-public class MapReader {
+public class MapTraversalManager {
     public MapPath getBestPathFromNode(){
 
     }
@@ -10,6 +10,6 @@ public class MapReader {
     }
 
     private boolean iteratedPathExceedsCriteria(MapPath iteratedPath, MapPath bestPath){
-        
+
     }
 }
