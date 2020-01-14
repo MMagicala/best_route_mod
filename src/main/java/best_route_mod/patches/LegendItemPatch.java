@@ -4,93 +4,84 @@ import basemod.ReflectionHacks;
 import best_route_mod.BestRouteMod;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.evacipated.cardcrawl.modthespire.lib.SpireField;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
-import com.megacrit.cardcrawl.core.CardCrawlGame;
-import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
-import com.megacrit.cardcrawl.helpers.input.InputAction;
-import com.megacrit.cardcrawl.helpers.input.InputActionSet;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.Legend;
 import com.megacrit.cardcrawl.map.LegendItem;
 import com.megacrit.cardcrawl.map.MapRoomNode;
+import com.megacrit.cardcrawl.rooms.*;
 
 public class LegendItemPatch {
 
+    // Inject roomClass field into LegendItem class
     @SpirePatch(
-            clz= Legend.class,
+            clz= LegendItem.class,
+            method=SpirePatch.CLASS
+    )
+    public static class RoomClassField{
+        public static SpireField<Class<?>> roomClass = new SpireField<>(() -> AbstractRoom.class);
+    }
+
+    // Assign the room class value in the constructor using it's label
+    @SpirePatch(
+            clz= LegendItem.class,
+            method=SpirePatch.CONSTRUCTOR
+    )
+    public static class LegendItemRoomClassPatch{
+        @SpirePostfixPatch
+        public static void Postfix(LegendItem __instance){
+            // Use ReflectionHacks to retrieve private field label and get its corresponding room class
+            String label = (String)ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
+            Class<?> roomClassValue = getRoomClassByLabel(label);
+            // Assign
+            RoomClassField.roomClass.set(__instance, roomClassValue);
+        }
+
+        // Pass in the LegendItem label to get the matching room class
+        private static Class<?> getRoomClassByLabel(String label){
+            switch(label){
+                case "Unknown":
+                    return EventRoom.class;
+                case "Merchant":
+                    return ShopRoom.class;
+                case "Treasure":
+                    return TreasureRoom.class;
+                case "Rest":
+                    return RestRoom.class;
+                case "Enemy":
+                    return MonsterRoom.class;
+                case "Elite":
+                    return MonsterRoomElite.class;
+            }
+            // This should not happen, like, at all
+            return null;
+        }
+    }
+
+    // Check if LegendItem was clicked and return corresponding room class
+    @SpirePatch(
+            clz= LegendItem.class,
             method="update"
     )
-    public static class LeftClickLegendItemPatch {
-        private static boolean isMiddleButtonJustPressed = false;
-        private static boolean isMiddleButtonPressedAfterFirstCycle = false;
+    public static class LegendItemClickPatch{
         @SpirePostfixPatch
-        public static void Postfix(Legend __instance) {
-            // Middle button just pressed code
-            if(Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)){
-                if(!isMiddleButtonJustPressed && !isMiddleButtonPressedAfterFirstCycle){
-                    isMiddleButtonJustPressed = true;
-                }else{
-                    isMiddleButtonJustPressed = false;
-                    isMiddleButtonPressedAfterFirstCycle = true;
-                }
-            }else{
-                isMiddleButtonJustPressed = false;
-                isMiddleButtonPressedAfterFirstCycle = false;
-            }
-
-            // Handle left, middle, and right click on legend items
-            for (int i = 0; i < __instance.items.size(); i++) {
-                Class<?> roomClass = BestRouteMod.getRoomClassByLegendIndex(i);
-                if (AbstractDungeon.dungeonMapScreen.map.legend.items.get(i).hb.hovered) {
-                    // Check for key presses
-                    boolean signInverted = false;
-                    char newSign = BestRouteMod.getSignOfRoomClass(roomClass) == '>' ? '<' : '>';
-                    if(isMiddleButtonJustPressed){
-                        BestRouteMod.setSignOfRoomClass(roomClass, newSign);
-                        signInverted = true;
+        public static void Postfix(LegendItem __instance){
+            if(__instance.hb.hovered) {
+                Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                if (InputHelper.justClickedLeft) {
+                    // Middle click also "left" clicks, so use more specific checks
+                    if (InputHelperPatch.getMiddleButtonJustPressed()) {
+                        BestRouteMod.switchSign(roomClass);
                     }
-
-                    // Check for mouse clicks
-                    boolean priorityChanged = false;
-                    // Middle button also left clicks so check for that
-                    if (InputHelper.justClickedLeft && !Gdx.input.isButtonPressed(Input.Buttons.MIDDLE)) {
-                        priorityChanged = BestRouteMod.raiseRoomClassPriority(roomClass);
-                    }else if(InputHelper.justClickedRight){
-                        priorityChanged = BestRouteMod.lowerRoomClassPriority(roomClass);
+                    // Is left mouse button being pressed down
+                    if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+                        BestRouteMod.lowerPriority(roomClass);
                     }
-                    if(priorityChanged || signInverted){
-                        // Disable highlighted path if all the priority indices are zero
-                        // TODO: put this code in a sep method?
-                        if(BestRouteMod.allPriorityIndicesAreZero()){
-                            BestRouteMod.disableCurrentBestPath();
-                            continue;
-                        }
-                        // Regenerate new best path
-                        if (AbstractDungeon.firstRoomChosen) {
-                            BestRouteMod.generateAndShowBestPathFromNode(AbstractDungeon.currMapNode);
-                        } else {
-                            BestRouteMod.generateAndShowBestPathFromStartingNodes();
-                        }
-                    }
+                } else if (InputHelper.justClickedRight) {
+                    BestRouteMod.raisePriority(roomClass);
                 }
-
-                // Update legend item text
-                String labelString = (String) ReflectionHacks.getPrivate(__instance.items.get(i), LegendItem.class, "label");
-                int priorityIndex = BestRouteMod.getPriorityIndexOfRoomClass(roomClass);
-                char sign = BestRouteMod.getSignOfRoomClass(roomClass);
-                // Clear any existing changes made to the label
-                if(labelString.endsWith(")")) {
-                    int leftParenIndex = labelString.lastIndexOf(" (");
-                    labelString = labelString.substring(0, leftParenIndex);
-                    ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", labelString);
-                }
-                // Print the priority index and sign
-                String newLabelString = labelString + " (" + priorityIndex + ", " + sign + ")";
-                ReflectionHacks.setPrivate(__instance.items.get(i), LegendItem.class, "label", newLabelString);
             }
         }
     }

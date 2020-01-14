@@ -2,34 +2,42 @@ package best_route_mod;
 
 import basemod.BaseMod;
 import basemod.interfaces.*;
+import best_route_mod.patches.SelectedNextRoomPatch;
 import com.badlogic.gdx.graphics.Color;
-import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
-import com.megacrit.cardcrawl.relics.AbstractRelic;
-import com.megacrit.cardcrawl.relics.WingBoots;
 import com.megacrit.cardcrawl.rooms.*;
 
-import java.io.IOException;
 import java.util.*;
 
 @SpireInitializer
-public class BestRouteMod implements PostDungeonInitializeSubscriber {
-    public static MapPath bestPath;
+public class BestRouteMod implements StartGameSubscriber {
+    // TODO: restructure everything
+    private static MapPath bestPath; // from current node or the whole map
+    private static MapPath bestPathFromHoveredNode;
 
-    private static LinkedHashMap<Class<?>, RoomClassProperties> roomClassProperties;
+    private static HashMap<Class<?>, RoomClass> roomClasses;
+
+    private static ColorPath colorPath;
+    private static MapTraversal mapTraversal;
 
     public BestRouteMod() {
-        roomClassProperties = new LinkedHashMap<>();
-        // Same order as legend items
-        roomClassProperties.put(EventRoom.class, new RoomClassProperties(createColorFrom255(0,0, 255)));
-        roomClassProperties.put(ShopRoom.class, new RoomClassProperties(createColorFrom255(127,0, 255)));
-        roomClassProperties.put(TreasureRoom.class, new RoomClassProperties(createColorFrom255(255,255, 0)));
-        roomClassProperties.put(RestRoom.class, new RoomClassProperties(createColorFrom255(0,255, 0)));
-        roomClassProperties.put(MonsterRoom.class, new RoomClassProperties(createColorFrom255(255,0, 0)));
-        roomClassProperties.put(MonsterRoomElite.class, new RoomClassProperties(createColorFrom255(255,127, 0)));
+        // Initialize class instances
+        colorPath = new ColorPath();
+        mapTraversal = new MapTraversal();
+
+        // TODO: load from preferences
+        // Load default room class settings
+        // TODO: make dynamic by iterating through legend items
+        roomClasses = new HashMap<>();
+        roomClasses.put(EventRoom.class, new RoomClass(createColorFrom255(0,0, 255)));
+        roomClasses.put(ShopRoom.class, new RoomClass(createColorFrom255(127,0, 255)));
+        roomClasses.put(TreasureRoom.class, new RoomClass(createColorFrom255(255,255, 0)));
+        roomClasses.put(RestRoom.class, new RoomClass(createColorFrom255(0,255, 0)));
+        roomClasses.put(MonsterRoom.class, new RoomClass(createColorFrom255(255,0, 0)));
+        roomClasses.put(MonsterRoomElite.class, new RoomClass(createColorFrom255(255,127, 0)));
 
         BaseMod.subscribe(this);
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
@@ -39,34 +47,38 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return new Color(r/255f, g/255f, b/255f, 1);
     }
 
+    // Reset this variable so we know if we have changed rooms
     @Override
-    public void receivePostDungeonInitialize() { }
+    public void receiveStartGame() {
+        SelectedNextRoomPatch.resetChangedRooms();
+    }
 
     public static void initialize() {
         new BestRouteMod();
     }
 
-    // first row of map only contains starting nodes, other rows always have 7 nodes
-    // 0,-1 node is whale
-
     // API methods
 
+    // Priority index methods
+
     public static boolean allPriorityIndicesAreZero(){
-        for(RoomClassProperties properties: roomClassProperties.values()){
+        for(RoomClass properties: roomClasses.values()){
             if(properties.isActive()) return false;
         }
         return true;
     }
 
-    private static int getLowestPriorityIndexWithRoom(){
+    // Get the lowest priority index > 0 with an active room class
+    public static ArrayList<Class<?>> getRoomsAtLowestPriorityIndex() {
         int lowestPriorityIndex = -1;
-        for(RoomClassProperties properties: roomClassProperties.values()){
-            if(properties.isActive() && (properties.getPriorityLevel() < lowestPriorityIndex || lowestPriorityIndex == -1))
+        for (RoomClass properties : roomClasses.values()) {
+            if (properties.isActive() && (lowestPriorityIndex == -1 || properties.getPriorityLevel() < lowestPriorityIndex))
                 lowestPriorityIndex = properties.getPriorityLevel();
+
         }
-        return lowestPriorityIndex;
     }
 
+    /*
     private static Color getColorOfRoomClass(Class<?> roomClass){
         return roomClassProperties.get(roomClass).getColor();
     }
@@ -75,49 +87,62 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return roomClassProperties.get(roomClass).getPriorityLevel();
     }
 
-    public static char getSignOfRoomClass(Class<?> roomClass){
-        return roomClassProperties.get(roomClass).sign;
-    }
-
-    public static void setSignOfRoomClass(Class<?> roomClass, char sign){
-        roomClassProperties.get(roomClass).sign = sign;
-    }
-
     public static Class<?> getRoomClassByLegendIndex(int index){
         return (Class<?>)roomClassProperties.keySet().toArray()[index];
     }
+*/
 
-    // 0 - not active
-    // > 0 - active
-    public static boolean raiseRoomClassPriority(Class<?> roomClass){
-        int priorityLevel = roomClassProperties.get(roomClass).getPriorityLevel();
-        if(priorityLevel < roomClassProperties.size()){
-            roomClassProperties.get(roomClass).incrementPriorityLevel();
-            return true;
-        }
-        return false;
+    public static Class<?>[] getRoomClasses(){
+        return (Class<?>[])roomClasses.keySet().toArray();
     }
 
-    public static boolean lowerRoomClassPriority(Class<?> roomClass){
-        if(roomClassProperties.get(roomClass).isActive()){
-            roomClassProperties.get(roomClass).decrementPriorityLevel();
-            return true;
-        }
-        return false;
+    public static void findAndShowBestPathFromNode(MapRoomNode node){
+        colorPath.disableCurrentlyColoredPath();
+        bestPath = mapTraversal.findBestPathFromNode(node);
+        colorPath.colorPath(bestPath);
     }
 
-    public static void generateAndShowBestPathFromNode(MapRoomNode node){
-        MapPath oldBestPath = new MapPath(bestPath);
-        bestPath = findBestPathFromNode(node);
-        // disablePath(oldBestPath);
-        colorBestPath();
-    }
-
-    public static void generateAndShowBestPathFromStartingNodes(){
+    public static void findAndShowBestPathFromStartingNodes(){
+        colorPath.disableCurrentlyColoredPath();
         ArrayList<MapRoomNode> startingNodes = getStartingNodes();
-        bestPath = findBestPathFromJumpableNodes(startingNodes);
-        // disablePath(oldBestPath);
-        colorBestPath();
+        bestPath = mapTraversal.findBestPathFromNodes(startingNodes);
+        colorPath.colorPath(bestPath);
+    }
+
+    private static void generateAndDisplayBestPath(){
+        if(!currNodeAt(0, -1)){
+            generateAndDisplayBestPathFromStartingNodes();
+        }else if(!currNodeAt(-1, 15)){
+            generateAndDisplayBestPathFromNode(AbstractDungeon.currMapNode);
+        }
+    }
+
+    private static boolean currNodeAt(int x, int y){
+        return AbstractDungeon.currMapNode.x == x && AbstractDungeon.currMapNode.y == y;
+    }
+
+    // Change room class properties and regenerate and show the path
+
+    public static void raisePriority(Class<?> roomClass){
+        int priorityLevel = roomClasses.get(roomClass).getPriorityLevel();
+        // Max priority is the number of room classes
+        if(priorityLevel < roomClasses.size()){
+            roomClasses.get(roomClass).incrementPriorityLevel();
+            // Current node may or may not be in map, so just use wrapper function to determine logic later
+            generateAndDisplayBestPath();
+        }
+    }
+
+    public static void lowerPriority(Class<?> roomClass){
+        if(roomClasses.get(roomClass).isActive()){
+            roomClasses.get(roomClass).decrementPriorityLevel();
+            if(!allPriorityIndicesAreZero()) generateAndDisplayBestPath();
+        }
+    }
+
+    public static void switchSign(Class<?> roomClass){
+        roomClasses.get(roomClass).sign = roomClasses.get(roomClass).sign == '>' ? '<' : '>';
+        if(!allPriorityIndicesAreZero()) generateAndDisplayBestPath();
     }
 
     // Private implementation
@@ -128,39 +153,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
         startingNodes.removeIf(mapRoomNode -> !mapRoomNode.hasEdges());
         return startingNodes;
-    }
-
-    // Travel all the nodes on the map (except for the boss node)
-    private static MapPath findBestPathFromNode(MapRoomNode node) {
-        ArrayList<MapRoomNode> jumpableNodes = getAdjacentNodesAbove(node);
-        // Last node will always be a campfire
-        if (jumpableNodes.isEmpty()) {
-            HashMap<Class, Integer> roomCounts = new HashMap<>();
-            roomCounts.put(RestRoom.class, 1);
-            return new MapPath(node, roomCounts);
-        }
-
-        MapPath bestPath = null;
-        if(jumpableNodes.size() == 1){
-            bestPath = findBestPathFromNode(jumpableNodes.get(0));
-        }else {
-            bestPath = findBestPathFromJumpableNodes(jumpableNodes);
-        }
-        bestPath.pushNodeToFrontOfPath(node);
-        bestPath.incrementRoomCount(node.room.getClass());
-
-        return bestPath;
-    }
-
-    private static MapPath findBestPathFromJumpableNodes(ArrayList<MapRoomNode> nodes) {
-        MapPath bestPath = null;
-        for (MapRoomNode node : nodes) {
-            MapPath currentPath = findBestPathFromNode(node);
-            if (bestPath == null || currentPathCriteriaExceedsBestPath(bestPath, currentPath)) {
-                bestPath = currentPath;
-            }
-        }
-        return bestPath;
     }
 
     private static boolean currentPathCriteriaExceedsBestPath(MapPath bestPath, MapPath currentPath){
@@ -188,7 +180,7 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
 
     private static ArrayList<Class<?>> getRoomClassesWithPriorityIndex(int priorityIndex){
         ArrayList<Class<?>> roomClasses = new ArrayList<>();
-        for(Map.Entry<Class<?>, RoomClassProperties> entry: roomClassProperties.entrySet()){
+        for(Map.Entry<Class<?>, RoomClass> entry: roomClassProperties.entrySet()){
             if(entry.getValue().getPriorityLevel() == priorityIndex){
                 roomClasses.add(entry.getKey());
             }
@@ -196,18 +188,6 @@ public class BestRouteMod implements PostDungeonInitializeSubscriber {
         return roomClasses;
     }
 
-    private static ArrayList<MapRoomNode> getAdjacentNodesAbove(MapRoomNode node) {
-        ArrayList<MapEdge> mapEdges = node.getEdges();
-        ArrayList<MapRoomNode> adjacentNodesAboveGivenNode = new ArrayList<>();
-        mapEdges.forEach(mapEdge -> {
-            // The boss node is 2 levels above the last rest site nodes, don't count it since we can't access it on the
-            // AbstractDungeon.map object
-            if (mapEdge.dstY - node.y == 1) {
-                adjacentNodesAboveGivenNode.add(getNodeAtCoordinates(mapEdge.dstX, mapEdge.dstY));
-            }
-        });
-        return adjacentNodesAboveGivenNode;
-    }
 
     private static MapRoomNode getNodeAtCoordinates(int x, int y) {
         if (y == 0) {

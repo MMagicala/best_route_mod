@@ -23,14 +23,14 @@ public class MapPath {
     }
 
     // Create a MapPath with only one node
-    public MapPath(MapRoomNode node, HashMap.Entry<Class<?>, Integer> roomCount){
+    public MapPath(MapRoomNode node){
         this.path = new ArrayList<>();
         path.add(node);
         this.roomCounts = new HashMap<>();
-        this.roomCounts.put(roomCount.getKey(), roomCount.getValue());
+        this.roomCounts.put(node.room.getClass(), 1);
         // Set the rest of the room counts to zero
-        for(int i = 0; i < RCPManager.getRoomTypes().size() - 1; i++){
-
+        for(Class<?> roomClass: BestRouteMod.getRoomClasses()){
+            if(roomClass != node.room.getClass()) roomCounts.put(roomClass, 0);
         }
     }
 
@@ -39,9 +39,14 @@ public class MapPath {
         this.roomCounts = roomCounts;
     }
 
+    // Use to replace null
+    public MapPath() {
+        this(new ArrayList<>(), new HashMap<>());
+    }
+
     // Get the number of rooms of a certain type in this path.
     public int getRoomCount(Class<?> roomType){
-        return roomCounts.get(roomType) == null ? 0 : roomCounts.get(roomType);
+        // return roomCounts.get(roomType) == null ? 0 : roomCounts.get(roomType);
     }
 
     public void pushNodeToFront(MapRoomNode node){
@@ -60,5 +65,9 @@ public class MapPath {
             edges.add(edge);
         }
         return edges;
+    }
+
+    public boolean isEmpty(){
+        return path.isEmpty();
     }
 }
