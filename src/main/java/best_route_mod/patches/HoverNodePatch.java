@@ -59,7 +59,7 @@ public class HoverNodePatch {
                     ColorPathManager.colorPath(bestPath);
                 }
                 // Revert to previously shown best path if node is unhovered
-                else if (UnHoveredFields.justUnHovered.get(__instance)) {
+                else if (UnHoveredFields.justUnHovere   d.get(__instance)) {
                     System.out.println("Just unhovered");
                     ColorPathManager.disableCurrentlyColoredPath();
                     ColorPathManager.colorPath(savedRenderedPath);

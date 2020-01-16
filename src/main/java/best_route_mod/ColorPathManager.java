@@ -36,7 +36,7 @@ public class ColorPathManager {
     }
 
     public static boolean isPathColored(){
-        return coloredPath.isEmpty();
+        return coloredPath.hasEdge();
     }
 
     public static MapPath getCurrentlyColoredPath(){

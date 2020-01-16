@@ -70,4 +70,8 @@ public class MapPath {
     public boolean isEmpty(){
         return path.isEmpty();
     }
+
+    public boolean hasEdge(){
+        return path.size() > 1;
+    }
 }

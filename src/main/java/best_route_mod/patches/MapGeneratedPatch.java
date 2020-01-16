@@ -25,7 +25,7 @@ public class MapGeneratedPatch {
     public static class ExordiumGeneratedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
-            System.out.println("Exordium generated");
+            // System.out.println("Exordium generated");
             HelperFunctions.mapGeneratedHelper();
         }
     }
@@ -41,7 +41,7 @@ public class MapGeneratedPatch {
         public static class CityGeneratedPatch{
             @SpirePostfixPatch
             public static void Postfix() {
-                System.out.println("City generated");
+                // System.out.println("City generated");
                 HelperFunctions.mapGeneratedHelper();
             }
         }
@@ -57,7 +57,7 @@ public class MapGeneratedPatch {
         public static class BeyondGeneratedPatch{
             @SpirePostfixPatch
             public static void Postfix() {
-                System.out.println("Beyond generated");
+                // System.out.println("Beyond generated");
                 HelperFunctions.mapGeneratedHelper();
             }
         }
@@ -73,7 +73,7 @@ public class MapGeneratedPatch {
         public static class EndingGeneratedPatch{
             @SpirePostfixPatch
             public static void Postfix() {
-                System.out.println("Ending generated");
+                // System.out.println("Ending generated");
                 HelperFunctions.mapGeneratedHelper();
             }
         }
@@ -89,7 +89,7 @@ public class MapGeneratedPatch {
     public static class ExordiumLoadedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
-            System.out.println("Exordium loaded");
+            // System.out.println("Exordium loaded");
             HelperFunctions.mapLoadedHelper();
         }
     }
@@ -105,7 +105,7 @@ public class MapGeneratedPatch {
     public static class CityLoadedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
-            System.out.println("City loaded");
+            // System.out.println("City loaded");
             HelperFunctions.mapLoadedHelper();
         }
     }
@@ -121,7 +121,7 @@ public class MapGeneratedPatch {
     public static class BeyondLoadedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
-            System.out.println("Beyond loaded");
+            // System.out.println("Beyond loaded");
             HelperFunctions.mapLoadedHelper();
         }
     }
@@ -137,7 +137,7 @@ public class MapGeneratedPatch {
     public static class EndingLoadedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
-            System.out.println("Ending loaded");
+            // System.out.println("Ending loaded");
             HelperFunctions.mapLoadedHelper();
         }
     }

@@ -50,6 +50,7 @@ public class NextRoomSelectedPatch {
                 locator = Locator.class
         )
         public static void Insert(DungeonMap __instance){
+            // Player can jump from a node to boss in some events, so we need to check if the path was colored
             if(ColorPathManager.isPathColored()){
                 ColorPathManager.disableCurrentlyColoredPath();
             }
