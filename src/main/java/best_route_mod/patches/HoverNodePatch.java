@@ -1,11 +1,14 @@
 package best_route_mod.patches;
 
+import best_route_mod.*;
 import com.evacipated.cardcrawl.modthespire.lib.SpireField;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.megacrit.cardcrawl.map.MapRoomNode;
 
-public class MouseNodePatch {
+import java.awt.*;
+
+public class HoverNodePatch {
     // Add these fields to check if node was just unhovered
     @SpirePatch(
             clz=MapRoomNode.class,
@@ -22,6 +25,9 @@ public class MouseNodePatch {
             method="update"
     )
     public static class JustUnHoveredCode {
+        // Save the previously rendered path so we can revert to it later
+        private static MapPath savedRenderedPath;
+
         @SpirePostfixPatch
         public static void Postfix(MapRoomNode __instance) {
             // Just unhovered logic
@@ -42,10 +48,24 @@ public class MouseNodePatch {
                 }
             }
 
-            // Show best path when node is hovered
-            if(__instance.hb.justHovered); // TODO: add payload
-            // Revert to previously shown best path if node is unhovered
-            else if(UnHoveredFields.justUnHovered.get(__instance)); // TODO: add payload
+            // Show best path when node is hovered and a path can be generated
+            if(!RoomClassManager.allRoomClassesInActive()) {
+                if (__instance.hb.justHovered) {
+                    if(!ColorPathManager.getCurrentlyColoredPath().isEmpty()) {
+                        savedRenderedPath = ColorPathManager.getCurrentlyColoredPath();
+                        ColorPathManager.disableCurrentlyColoredPath();
+                    }
+                    MapPath bestPath = MapReader.getBestPathFrom(__instance);
+                    ColorPathManager.colorPath(bestPath);
+                }
+                // Revert to previously shown best path if node is unhovered
+                else if (UnHoveredFields.justUnHovered.get(__instance)) {
+                    ColorPathManager.disableCurrentlyColoredPath();
+                    if(!ColorPathManager.getCurrentlyColoredPath().isEmpty()) {
+                        ColorPathManager.colorPath(savedRenderedPath);
+                    }
+                }
+            }
         }
     }
 }

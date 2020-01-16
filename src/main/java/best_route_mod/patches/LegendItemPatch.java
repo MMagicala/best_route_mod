@@ -1,12 +1,16 @@
 package best_route_mod.patches;
 
 import basemod.ReflectionHacks;
-import best_route_mod.BestRouteMod;
+import best_route_mod.ColorPathManager;
+import best_route_mod.MapPath;
+import best_route_mod.MapReader;
+import best_route_mod.RoomClassManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.evacipated.cardcrawl.modthespire.lib.SpireField;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
+import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.helpers.input.InputHelper;
 import com.megacrit.cardcrawl.map.Legend;
 import com.megacrit.cardcrawl.map.LegendItem;
@@ -68,21 +72,52 @@ public class LegendItemPatch {
     public static class LegendItemClickPatch{
         @SpirePostfixPatch
         public static void Postfix(LegendItem __instance){
-            if(__instance.hb.hovered) {
-                Class<?> roomClass = RoomClassField.roomClass.get(__instance);
-                if (InputHelper.justClickedLeft) {
-                    // Middle click also "left" clicks, so use more specific checks
-                    if (InputHelperPatch.getMiddleButtonJustPressed()) {
-                        BestRouteMod.switchSign(roomClass);
+            if(__instance.hb.hovered){
+                // Middle click also "left" clicks, so use more specific checks
+                if(InputHelper.justClickedLeft) {
+                    if(InputHelperPatch.getMiddleButtonJustPressed()){
+                        // Switch the sign of the room class
+                        Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                        RoomClassManager.flipSign(roomClass);
+                        // Regenerate and rerender the path if necessary
+                        if(!RoomClassManager.allRoomClassesInActive()){
+                            ColorPathManager.disableCurrentlyColoredPath();
+                            reRenderPath();
+                        }
                     }
                     // Is left mouse button being pressed down
-                    if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
-                        BestRouteMod.lowerPriority(roomClass);
+                    if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+                        Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                        if(RoomClassManager.getPriorityIndexOf(roomClass) < RoomClassManager.getNumRoomClasses()){
+                            RoomClassManager.incrementPriorityIndexOf(roomClass);
+                            // Rerender path
+                            if(!RoomClassManager.allRoomClassesInActive()) {
+                                ColorPathManager.disableCurrentlyColoredPath();
+                            }
+                            reRenderPath();
+                        }
                     }
-                } else if (InputHelper.justClickedRight) {
-                    BestRouteMod.raisePriority(roomClass);
+                }else if(InputHelper.justClickedRight){
+                    Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                    if(RoomClassManager.isRoomClassActive(roomClass)){
+                        RoomClassManager.decrementPriorityIndexOf(roomClass);
+                        // Rerender path
+                        ColorPathManager.disableCurrentlyColoredPath();
+                        if(!RoomClassManager.allRoomClassesInActive()) reRenderPath();
+                    }
                 }
             }
+        }
+
+        // Get and print out best path
+        private static void reRenderPath(){
+            MapPath bestPath;
+            if(AbstractDungeon.firstRoomChosen){
+                bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+            }else{
+                bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
+            }
+            ColorPathManager.colorPath(bestPath);
         }
     }
 }

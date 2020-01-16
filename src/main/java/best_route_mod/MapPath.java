@@ -29,8 +29,8 @@ public class MapPath {
         this.roomCounts = new HashMap<>();
         this.roomCounts.put(node.room.getClass(), 1);
         // Set the rest of the room counts to zero
-        for(Class<?> roomClass: BestRouteMod.getRoomClasses()){
-            if(roomClass != node.room.getClass()) roomCounts.put(roomClass, 0);
+        for(Object roomClass: RoomClassManager.getRoomClasses()){
+            if(roomClass != node.room.getClass()) roomCounts.put((Class<?>)roomClass, 0);
         }
     }
 
@@ -46,10 +46,10 @@ public class MapPath {
 
     // Get the number of rooms of a certain type in this path.
     public int getRoomCount(Class<?> roomType){
-        // return roomCounts.get(roomType) == null ? 0 : roomCounts.get(roomType);
+        return roomCounts.get(roomType);
     }
 
-    public void pushNodeToFront(MapRoomNode node){
+    public void pushToFront(MapRoomNode node){
         path.add(0,node);
         // Increment the number of rooms for this class
         Class<?> roomClass = node.room.getClass();

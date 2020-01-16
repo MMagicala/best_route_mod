@@ -1,6 +1,7 @@
 package best_route_mod.patches;
 
-import best_route_mod.BestRouteMod;
+import best_route_mod.MapReader;
+import best_route_mod.RoomClassManager;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePostfixPatch;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
@@ -9,9 +10,8 @@ import com.megacrit.cardcrawl.saveAndContinue.SaveFile;
 
 import java.util.ArrayList;
 
-public class MapGenerationPatch {
-    // Show the best path from starting nodes once a new act has started
-    // A new act will always be generated before the player selects a starting node
+public class MapGeneratedPatch {
+    // Show the best path once a new act has started
     @SpirePatch(
             clz= Exordium.class,
             method=SpirePatch.CONSTRUCTOR,
@@ -24,7 +24,9 @@ public class MapGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Exordium generated");
-            BestRouteMod.findAndShowBestPathFromStartingNodes();
+            if(!RoomClassManager.allRoomClassesInActive()){
+                MapReader.getBestPathFrom(MapReader.getStartingNodes());
+            }
         }
     }
 
@@ -40,7 +42,9 @@ public class MapGenerationPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("City generated");
-                BestRouteMod.findAndShowBestPathFromStartingNodes();
+                if(!RoomClassManager.allRoomClassesInActive()){
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }
             }
         }
     
@@ -56,7 +60,9 @@ public class MapGenerationPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("Beyond generated");
-                BestRouteMod.findAndShowBestPathFromStartingNodes();
+                if(!RoomClassManager.allRoomClassesInActive()){
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }
             }
         }
     
@@ -72,7 +78,9 @@ public class MapGenerationPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("Ending generated");
-                BestRouteMod.findAndShowBestPathFromStartingNodes();
+                if(!RoomClassManager.allRoomClassesInActive()){
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }
             }
         }
 
@@ -84,13 +92,17 @@ public class MapGenerationPatch {
                     SaveFile.class
             }
     )
-
-    // Generate best path from node where we left off
     public static class ExordiumLoadedPatch{
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Exordium loaded");
-            BestRouteMod.findAndShowBestPathFromNode(AbstractDungeon.currMapNode);
+            if(!RoomClassManager.allRoomClassesInActive()) {
+                if (AbstractDungeon.firstRoomChosen) {
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }else{
+                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                }
+            }
         }
     }
 
@@ -106,7 +118,13 @@ public class MapGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("City loaded");
-            BestRouteMod.findAndShowBestPathFromNode(AbstractDungeon.currMapNode);
+            if(!RoomClassManager.allRoomClassesInActive()) {
+                if (AbstractDungeon.firstRoomChosen) {
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }else{
+                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                }
+            }
         }
     }
 
@@ -122,7 +140,13 @@ public class MapGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Beyond loaded");
-            BestRouteMod.findAndShowBestPathFromNode(AbstractDungeon.currMapNode);
+            if(!RoomClassManager.allRoomClassesInActive()) {
+                if (AbstractDungeon.firstRoomChosen) {
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }else{
+                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                }
+            }
         }
     }
 
@@ -138,7 +162,13 @@ public class MapGenerationPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Ending loaded");
-            BestRouteMod.findAndShowBestPathFromNode(AbstractDungeon.currMapNode);
+            if(!RoomClassManager.allRoomClassesInActive()) {
+                if (AbstractDungeon.firstRoomChosen) {
+                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                }else{
+                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                }
+            }
         }
     }
 }
