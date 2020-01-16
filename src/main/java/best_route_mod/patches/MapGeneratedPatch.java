@@ -1,5 +1,7 @@
 package best_route_mod.patches;
 
+import best_route_mod.ColorPathManager;
+import best_route_mod.MapPath;
 import best_route_mod.MapReader;
 import best_route_mod.RoomClassManager;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
@@ -24,9 +26,7 @@ public class MapGeneratedPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Exordium generated");
-            if(!RoomClassManager.allRoomClassesInActive()){
-                MapReader.getBestPathFrom(MapReader.getStartingNodes());
-            }
+            HelperFunctions.mapGeneratedHelper();
         }
     }
 
@@ -42,9 +42,7 @@ public class MapGeneratedPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("City generated");
-                if(!RoomClassManager.allRoomClassesInActive()){
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }
+                HelperFunctions.mapGeneratedHelper();
             }
         }
     
@@ -60,9 +58,7 @@ public class MapGeneratedPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("Beyond generated");
-                if(!RoomClassManager.allRoomClassesInActive()){
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }
+                HelperFunctions.mapGeneratedHelper();
             }
         }
     
@@ -78,9 +74,7 @@ public class MapGeneratedPatch {
             @SpirePostfixPatch
             public static void Postfix() {
                 System.out.println("Ending generated");
-                if(!RoomClassManager.allRoomClassesInActive()){
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }
+                HelperFunctions.mapGeneratedHelper();
             }
         }
 
@@ -96,13 +90,7 @@ public class MapGeneratedPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Exordium loaded");
-            if(!RoomClassManager.allRoomClassesInActive()) {
-                if (AbstractDungeon.firstRoomChosen) {
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }else{
-                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
-                }
-            }
+            HelperFunctions.mapLoadedHelper();
         }
     }
 
@@ -118,13 +106,7 @@ public class MapGeneratedPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("City loaded");
-            if(!RoomClassManager.allRoomClassesInActive()) {
-                if (AbstractDungeon.firstRoomChosen) {
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }else{
-                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
-                }
-            }
+            HelperFunctions.mapLoadedHelper();
         }
     }
 
@@ -140,13 +122,7 @@ public class MapGeneratedPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Beyond loaded");
-            if(!RoomClassManager.allRoomClassesInActive()) {
-                if (AbstractDungeon.firstRoomChosen) {
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
-                }else{
-                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
-                }
-            }
+            HelperFunctions.mapLoadedHelper();
         }
     }
 
@@ -162,12 +138,27 @@ public class MapGeneratedPatch {
         @SpirePostfixPatch
         public static void Postfix() {
             System.out.println("Ending loaded");
+            HelperFunctions.mapLoadedHelper();
+        }
+    }
+
+    public static class HelperFunctions{
+        public static void mapGeneratedHelper(){
+            if(!RoomClassManager.allRoomClassesInActive()){
+                MapPath bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                ColorPathManager.colorPath(bestPath);
+            }
+        }
+
+        public static void mapLoadedHelper(){
             if(!RoomClassManager.allRoomClassesInActive()) {
-                if (AbstractDungeon.firstRoomChosen) {
-                    MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                MapPath bestPath;
+                if (!AbstractDungeon.firstRoomChosen) {
+                    bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
                 }else{
-                    MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                    bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
                 }
+                ColorPathManager.colorPath(bestPath);
             }
         }
     }

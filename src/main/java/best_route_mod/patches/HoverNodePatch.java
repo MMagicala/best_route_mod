@@ -9,6 +9,7 @@ import com.megacrit.cardcrawl.map.MapRoomNode;
 import java.awt.*;
 
 public class HoverNodePatch {
+/*
     // Add these fields to check if node was just unhovered
     @SpirePatch(
             clz=MapRoomNode.class,
@@ -51,21 +52,20 @@ public class HoverNodePatch {
             // Show best path when node is hovered and a path can be generated
             if(!RoomClassManager.allRoomClassesInActive()) {
                 if (__instance.hb.justHovered) {
-                    if(!ColorPathManager.getCurrentlyColoredPath().isEmpty()) {
-                        savedRenderedPath = ColorPathManager.getCurrentlyColoredPath();
-                        ColorPathManager.disableCurrentlyColoredPath();
-                    }
+                    System.out.println("just hovered");
+                    savedRenderedPath = ColorPathManager.getCurrentlyColoredPath();
+                    ColorPathManager.disableCurrentlyColoredPath();
                     MapPath bestPath = MapReader.getBestPathFrom(__instance);
                     ColorPathManager.colorPath(bestPath);
                 }
                 // Revert to previously shown best path if node is unhovered
                 else if (UnHoveredFields.justUnHovered.get(__instance)) {
+                    System.out.println("Just unhovered");
                     ColorPathManager.disableCurrentlyColoredPath();
-                    if(!ColorPathManager.getCurrentlyColoredPath().isEmpty()) {
-                        ColorPathManager.colorPath(savedRenderedPath);
-                    }
+                    ColorPathManager.colorPath(savedRenderedPath);
                 }
             }
         }
     }
+*/
 }

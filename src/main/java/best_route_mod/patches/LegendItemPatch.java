@@ -72,6 +72,7 @@ public class LegendItemPatch {
     public static class LegendItemClickPatch{
         @SpirePostfixPatch
         public static void Postfix(LegendItem __instance){
+            boolean propertyChanged = false;
             if(__instance.hb.hovered){
                 // Middle click also "left" clicks, so use more specific checks
                 if(InputHelper.justClickedLeft) {
@@ -84,6 +85,7 @@ public class LegendItemPatch {
                             ColorPathManager.disableCurrentlyColoredPath();
                             reRenderPath();
                         }
+                        propertyChanged = true;
                     }
                     // Is left mouse button being pressed down
                     if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
@@ -95,6 +97,7 @@ public class LegendItemPatch {
                                 ColorPathManager.disableCurrentlyColoredPath();
                             }
                             reRenderPath();
+                            propertyChanged = true;
                         }
                     }
                 }else if(InputHelper.justClickedRight){
@@ -104,8 +107,27 @@ public class LegendItemPatch {
                         // Rerender path
                         ColorPathManager.disableCurrentlyColoredPath();
                         if(!RoomClassManager.allRoomClassesInActive()) reRenderPath();
+                        propertyChanged = true;
                     }
                 }
+            }
+            // Render the text
+            String origLabel = (String)ReflectionHacks.getPrivate(__instance, LegendItem.class, "label");
+            if(origLabel.charAt(origLabel.length()-1) != ')') {
+                // Change text to new format on first update
+                Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                String newLabel = origLabel + " (" + RoomClassManager.getPriorityIndexOf(roomClass) + ", " +
+                        RoomClassManager.getSignOf(roomClass) + ")";
+                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", newLabel);
+            }
+            if(propertyChanged){
+                // Rerender text when a property has changed
+                Class<?> roomClass = RoomClassField.roomClass.get(__instance);
+                int endIndex = origLabel.indexOf(" (");
+                origLabel = origLabel.substring(0, endIndex);
+                String newLabel = origLabel + " (" + RoomClassManager.getPriorityIndexOf(roomClass) + ", " +
+                        RoomClassManager.getSignOf(roomClass) + ")";
+                ReflectionHacks.setPrivate(__instance, LegendItem.class, "label", newLabel);
             }
         }
 

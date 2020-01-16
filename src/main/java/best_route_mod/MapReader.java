@@ -41,7 +41,7 @@ public class MapReader {
         return startingNodes;
     }
 
-    private static boolean iteratedPathExceedsBestPath(MapPath iteratedPath, MapPath bestPath){
+    private static boolean iteratedPathExceedsBestPath(MapPath bestPath, MapPath iteratedPath){
         // Iterate through each level
         for(int i = 1; i <= RoomClassManager.getNumRoomClasses(); i++){
             ArrayList<Class<?>> roomClassesWithPriorityIndex = RoomClassManager.getRoomClasses(i);
