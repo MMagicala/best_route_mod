@@ -3,14 +3,14 @@ package best_route_mod;
 import com.badlogic.gdx.graphics.Color;
 
 public class RoomClassProperties {
-    public char sign;
-    private int priorityLevel; // default = 0
+    private char sign;
+    private int priorityIndex; // default = 0
     private Color color;
     // TODO: add color
 
     public RoomClassProperties(Color color){
         sign = '>';
-        priorityLevel = 0;
+        priorityIndex = 0;
         this.color = color;
     }
 
@@ -18,19 +18,27 @@ public class RoomClassProperties {
         return color;
     }
 
-    public int getPriorityLevel(){
-        return priorityLevel;
+    public int getPriorityIndex(){
+        return priorityIndex;
     }
 
-    public void incrementPriorityLevel(){
-        priorityLevel++;
+    public char getSign(){
+        return sign;
     }
 
-    public void decrementPriorityLevel(){
-        priorityLevel--;
+    public void flipSign(){
+        sign = sign == '>' ? '<' : '>';
+    }
+
+    public void incrementPriorityIndex(){
+        priorityIndex++;
+    }
+
+    public void decrementPriorityIndex(){
+        priorityIndex--;
     }
 
     public boolean isActive(){
-        return priorityLevel > 0;
+        return priorityIndex > 0;
     }
 }
