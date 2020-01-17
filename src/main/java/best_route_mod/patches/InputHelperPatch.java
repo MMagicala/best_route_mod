@@ -66,18 +66,10 @@ public class InputHelperPatch {
                 ColorPathManager.disableCurrentlyColoredPath();
                 MapPath bestPath;
                 if(factorNeowsLament) {
-                    // Render neows lament path INDEPENDENT of whether all rooms are inactive
-                    MapPath neowsLamentPath;
                     if (AbstractDungeon.firstRoomChosen) {
-                        neowsLamentPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode, getNeowsLamentCounter());
+                        bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode, getNeowsLamentCounter());
                     } else {
-                        neowsLamentPath = MapReader.getBestPathFrom(MapReader.getStartingNodes(), getNeowsLamentCounter());
-                    }
-                    ColorPathManager.colorNeowsLamentPath(neowsLamentPath);
-                    // Render the remaining path if path can be generated
-                    if(!RoomClassManager.allRoomClassesInActive()){
-                        bestPath = MapReader.getBestPathFrom(neowsLamentPath.last());
-                        ColorPathManager.colorPath(bestPath);
+                        bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes(), getNeowsLamentCounter());
                     }
                 }else{
                     if(!RoomClassManager.allRoomClassesInActive()) {
