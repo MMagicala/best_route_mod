@@ -1,56 +1,50 @@
 package best_route_mod;
 
+import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
-import com.megacrit.cardcrawl.rooms.MonsterRoom;
-import com.megacrit.cardcrawl.rooms.MonsterRoomBoss;
-import com.megacrit.cardcrawl.rooms.MonsterRoomElite;
 
 import java.util.ArrayList;
 
 //@SuppressWarnings (value="unchecked")
 public class MapReader {
-    public static MapPath getBestPathFrom(MapRoomNode node, int neowsLamentCounter){
-        ArrayList<MapRoomNode> jumpableNodes = getAdjacentNodesAbove(node);
-        if(neowsLamentCounter > 0 && node.room.getClass() == MonsterRoomBoss.class
-                || node.room.getClass() == MonsterRoom.class
-                || node.room.getClass() == MonsterRoomElite.class){
-            neowsLamentCounter--;
+    public static boolean emeraldKeyExists(){
+        for(ArrayList<MapRoomNode> list: AbstractDungeon.map){
+            for(MapRoomNode node: list){
+                if(node.hasEmeraldKey) return true;
+            }
         }
-        if (jumpableNodes.isEmpty() || neowsLamentCounter == 0) {
+        return false;
+    }
+
+    public static MapPath getBestPathFrom(MapRoomNode node, boolean isEmeraldKeyRequired){
+        ArrayList<MapRoomNode> jumpableNodes = getAdjacentNodesAbove(node);
+        if (jumpableNodes.isEmpty()) {
             return new MapPath(node);
         }
 
         MapPath bestPath;
         if(jumpableNodes.size() == 1){
-            bestPath = getBestPathFrom(jumpableNodes.get(0), neowsLamentCounter);
+            bestPath = getBestPathFrom(jumpableNodes.get(0), isEmeraldKeyRequired);
         }else {
-            bestPath = getBestPathFrom(jumpableNodes, neowsLamentCounter);
+            bestPath = getBestPathFrom(jumpableNodes, isEmeraldKeyRequired);
         }
         bestPath.pushToFront(node);
         return bestPath;
     }
 
-    public static MapPath getBestPathFrom(MapRoomNode node){
-        return getBestPathFrom(node, -1);
-    }
-
-    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes, int neowsLamentCounter){
+    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes, boolean isEmeraldKeyRequired){
         MapPath bestPath = new MapPath();
         for (MapRoomNode node : nodes) {
-            MapPath currentPath = getBestPathFrom(node, neowsLamentCounter);
-            if (bestPath.isEmpty() || currentPath.size() > bestPath.size() && neowsLamentCounter >= 0
-                    || (iteratedPathExceedsBestPath(bestPath, currentPath) && neowsLamentCounter == -1)) {
+            MapPath currentPath = getBestPathFrom(node, isEmeraldKeyRequired);
+            if(bestPath.isEmpty() || iteratedPathExceedsBestPath(bestPath, currentPath, isEmeraldKeyRequired)) {
                 bestPath = currentPath;
             }
         }
         return bestPath;
     }
-
-    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes){
-        return getBestPathFrom(nodes, -1);
-    }
+    // Helper methods
 
     public static ArrayList<MapRoomNode> getStartingNodes() {
         ArrayList<MapRoomNode> startingNodes = AbstractDungeon.map.get(0);
@@ -58,13 +52,33 @@ public class MapReader {
         return startingNodes;
     }
 
-    private static boolean iteratedPathExceedsBestPath(MapPath bestPath, MapPath iteratedPath){
+    // Check if we can reach the emerald key from this node
+    public static boolean isEmeraldKeyReachableFrom(MapRoomNode node){
+        if(node.hasEmeraldKey) return true;
+        // Keep searching through the map
+        ArrayList<MapRoomNode> adjacentNodesAboveNode = getAdjacentNodesAbove(node);
+        if(adjacentNodesAboveNode.isEmpty()){
+            return false;
+        }else{
+            for(MapRoomNode adjNode: adjacentNodesAboveNode){
+                 if(isEmeraldKeyReachableFrom(adjNode)) return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean iteratedPathExceedsBestPath(MapPath bestPath, MapPath iteratedPath,
+                                                       boolean isEmeraldKeyRequired){
+        // First check if emerald key is required
+        if(isEmeraldKeyRequired) {
+            if (bestPath.hasEmerald() ^ iteratedPath.hasEmerald()) {
+                return iteratedPath.hasEmerald();
+            }
+        }
         // Iterate through each level
         for(int i = 1; i <= RoomClassManager.getNumRoomClasses(); i++){
             ArrayList<Class<?>> roomClassesWithPriorityIndex = RoomClassManager.getRoomClasses(i);
-            // Just skip to the next level to compare
-            // if(roomClassesWithPriorityIndex.isEmpty()) continue;
-            for(Class<?> roomClass: roomClassesWithPriorityIndex){
+                for(Class<?> roomClass: roomClassesWithPriorityIndex){
                 boolean roomCountGreaterThan = iteratedPath.getRoomCount(roomClass) > bestPath.getRoomCount(roomClass);
                 boolean roomCountLessThan = iteratedPath.getRoomCount(roomClass) < bestPath.getRoomCount(roomClass);
                 boolean signGreaterThan = RoomClassManager.getSignOf(roomClass) == '>';

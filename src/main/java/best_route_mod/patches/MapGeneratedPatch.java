@@ -145,7 +145,8 @@ public class MapGeneratedPatch {
     public static class HelperFunctions{
         public static void mapGeneratedHelper(){
             if(!RoomClassManager.allRoomClassesInActive()){
-                MapPath bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                MapPath bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes(),
+                        InputHelperPatch.isEmeraldKeyRequired());
                 ColorPathManager.colorPath(bestPath);
             }
         }
@@ -154,9 +155,11 @@ public class MapGeneratedPatch {
             if(!RoomClassManager.allRoomClassesInActive()) {
                 MapPath bestPath;
                 if (!AbstractDungeon.firstRoomChosen) {
-                    bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                    bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes(),
+                            InputHelperPatch.isEmeraldKeyRequired());
                 }else{
-                    bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                    bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode,
+                            InputHelperPatch.isEmeraldKeyRequired());
                 }
                 ColorPathManager.colorPath(bestPath);
             }
