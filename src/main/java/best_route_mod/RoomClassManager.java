@@ -8,12 +8,16 @@ import java.util.HashMap;
 
 public class RoomClassManager {
     // Statically create room classes and assign colors
-    private static HashMap<Class<?>, RoomClassProperties> roomClassProperties = new
-            HashMap<Class<?>, RoomClassProperties>();
-
-    public static void loadRoomClassProperties(Class<?> roomClass, RoomClassProperties rcp){
-
-    }
+    private static HashMap<Class<?>, RoomClassProperties> roomClassProperties = new HashMap<Class<?>, RoomClassProperties>() {
+        {
+            put(EventRoom.class, new RoomClassProperties(createColorFrom255(0, 0, 255)));
+            put(ShopRoom.class, new RoomClassProperties(createColorFrom255(127, 0, 255)));
+            put(TreasureRoom.class, new RoomClassProperties(createColorFrom255(255, 255, 0)));
+            put(RestRoom.class, new RoomClassProperties(createColorFrom255(0, 255, 0)));
+            put(MonsterRoom.class, new RoomClassProperties(createColorFrom255(255, 0, 0)));
+            put(MonsterRoomElite.class, new RoomClassProperties(createColorFrom255(255, 127, 0)));
+        }
+    };
 
     // Helper method to convert RGB to decimals
     private static Color createColorFrom255(int r, int g, int b) {
