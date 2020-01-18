@@ -14,34 +14,38 @@ import java.util.Map;
 public class MapPath {
     private HashMap<Class<?>, Integer> roomCounts;
     private ArrayList<MapRoomNode> path;
+    private boolean _hasEmerald;
 
     /* Constructors */
 
     // Make a copy of a MapPath instance
     public MapPath(MapPath original){
-        this(original.path, original.roomCounts);
+        this(original.path, original.roomCounts, original._hasEmerald);
     }
 
     // Create a MapPath with only one node
     public MapPath(MapRoomNode node){
         this.path = new ArrayList<>();
-        path.add(node);
+        this.path.add(node);
         this.roomCounts = new HashMap<>();
         this.roomCounts.put(node.room.getClass(), 1);
         // Set the rest of the room counts to zero
         for(Object roomClass: RoomClassManager.getRoomClasses()){
-            if(roomClass != node.room.getClass()) roomCounts.put((Class<?>)roomClass, 0);
+            if(roomClass != node.room.getClass()) this.roomCounts.put((Class<?>)roomClass, 0);
         }
+        // Check for emerald key
+        this._hasEmerald = node.hasEmeraldKey;
     }
 
-    public MapPath(ArrayList<MapRoomNode> path, HashMap<Class<?>, Integer> roomCounts){
+    public MapPath(ArrayList<MapRoomNode> path, HashMap<Class<?>, Integer> roomCounts, boolean hasEmerald){
+        this._hasEmerald = hasEmerald;
         this.path = path;
         this.roomCounts = roomCounts;
     }
 
     // Use to replace null
     public MapPath() {
-        this(new ArrayList<>(), new HashMap<>());
+        this(new ArrayList<>(), new HashMap<>(), false);
     }
 
     // Get the number of rooms of a certain type in this path.
@@ -50,10 +54,14 @@ public class MapPath {
     }
 
     public void pushToFront(MapRoomNode node){
-        path.add(0,node);
+        this.path.add(0,node);
         // Increment the number of rooms for this class
         Class<?> roomClass = node.room.getClass();
         roomCounts.put(roomClass, getRoomCount(roomClass)+1);
+        // Check for emerald
+        if(node.hasEmeraldKey){
+            _hasEmerald = true;
+        }
     }
 
     // Get the edges between the nodes of the path
@@ -73,5 +81,9 @@ public class MapPath {
 
     public boolean hasEdge(){
         return path.size() > 1;
+    }
+
+    public boolean hasEmerald(){
+        return _hasEmerald;
     }
 }

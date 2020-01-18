@@ -135,9 +135,9 @@ public class LegendItemPatch {
         private static void reRenderPath(){
             MapPath bestPath;
             if(AbstractDungeon.firstRoomChosen){
-                bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode);
+                bestPath = MapReader.getBestPathFrom(AbstractDungeon.currMapNode, InputHelperPatch.isEmeraldKeyRequired());
             }else{
-                bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes());
+                bestPath = MapReader.getBestPathFrom(MapReader.getStartingNodes(), InputHelperPatch.isEmeraldKeyRequired());
             }
             ColorPathManager.colorPath(bestPath);
         }

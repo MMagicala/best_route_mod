@@ -25,7 +25,9 @@ public class NextRoomSelectedPatch {
         public static void Insert(MapRoomNode __instance){
             if(!RoomClassManager.allRoomClassesInActive()) {
                 ColorPathManager.disableCurrentlyColoredPath();
-                MapPath bestPath = MapReader.getBestPathFrom(__instance);
+                if(!MapReader.isEmeraldKeyReachableFrom(__instance))
+                    InputHelperPatch.disableEmeraldKeyRequirement();
+                MapPath bestPath = MapReader.getBestPathFrom(__instance, InputHelperPatch.isEmeraldKeyRequired());
                 ColorPathManager.colorPath(bestPath);
             }
         }
@@ -54,6 +56,8 @@ public class NextRoomSelectedPatch {
             if(ColorPathManager.isPathColored()){
                 ColorPathManager.disableCurrentlyColoredPath();
             }
+            // Obviously the emerald key isnt accessible
+            InputHelperPatch.disableEmeraldKeyRequirement();
         }
 
         private static class Locator extends SpireInsertLocator {

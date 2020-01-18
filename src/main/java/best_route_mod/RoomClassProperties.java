@@ -6,7 +6,6 @@ public class RoomClassProperties {
     private char sign;
     private int priorityIndex; // default = 0
     private Color color;
-    // TODO: add color
 
     public RoomClassProperties(Color color){
         sign = '>';
@@ -37,7 +36,6 @@ public class RoomClassProperties {
     public void decrementPriorityIndex(){
         priorityIndex--;
     }
-
     public boolean isActive(){
         return priorityIndex > 0;
     }

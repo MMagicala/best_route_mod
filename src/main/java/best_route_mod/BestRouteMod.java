@@ -7,7 +7,7 @@ import com.megacrit.cardcrawl.map.MapRoomNode;
 import java.util.*;
 
 @SpireInitializer
-public class BestRouteMod {
+public class BestRouteMod{
     public BestRouteMod() {
         System.out.println("Best Route Mod initialized. Enjoy! -Mysterio's Magical Assistant");
     }

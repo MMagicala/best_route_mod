@@ -1,5 +1,7 @@
 package best_route_mod;
 
+import best_route_mod.patches.InputHelperPatch;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
@@ -16,9 +18,9 @@ public class ColorPathManager {
         ArrayList<Class<?>> roomClassesAtLowestPriorityIndex = RoomClassManager.getActiveRoomClassesAtLowestPriority();
         // Use the color matching the room. If multiple rooms, use cyan
         Color color;
-        if(roomClassesAtLowestPriorityIndex.size() > 1){
+        if (roomClassesAtLowestPriorityIndex.size() > 1) {
             color = Color.CYAN;
-        }else{
+        } else {
             color = RoomClassManager.getColorOf(roomClassesAtLowestPriorityIndex.get(0));
         }
         for(MapEdge edge: path.getEdges()){
@@ -27,7 +29,7 @@ public class ColorPathManager {
         }
     }
 
-    // Disable the path we colored before
+        // Disable the path we colored before
     public static void disableCurrentlyColoredPath(){
         for(MapEdge edge: coloredPath.getEdges()){
             edge.taken = false;
