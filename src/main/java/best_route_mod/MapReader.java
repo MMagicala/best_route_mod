@@ -3,53 +3,36 @@ package best_route_mod;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.map.MapEdge;
 import com.megacrit.cardcrawl.map.MapRoomNode;
-import com.megacrit.cardcrawl.rooms.MonsterRoom;
-import com.megacrit.cardcrawl.rooms.MonsterRoomBoss;
-import com.megacrit.cardcrawl.rooms.MonsterRoomElite;
 
 import java.util.ArrayList;
 
 //@SuppressWarnings (value="unchecked")
 public class MapReader {
-    public static MapPath getBestPathFrom(MapRoomNode node, int neowsLamentCounter){
+    public static MapPath getBestPathFrom(MapRoomNode node){
         ArrayList<MapRoomNode> jumpableNodes = getAdjacentNodesAbove(node);
-        if(neowsLamentCounter > 0 && node.room.getClass() == MonsterRoomBoss.class
-                || node.room.getClass() == MonsterRoom.class
-                || node.room.getClass() == MonsterRoomElite.class){
-            neowsLamentCounter--;
-        }
-        if (jumpableNodes.isEmpty() || neowsLamentCounter == 0) {
+        if (jumpableNodes.isEmpty()) {
             return new MapPath(node);
         }
 
         MapPath bestPath;
         if(jumpableNodes.size() == 1){
-            bestPath = getBestPathFrom(jumpableNodes.get(0), neowsLamentCounter);
+            bestPath = getBestPathFrom(jumpableNodes.get(0));
         }else {
-            bestPath = getBestPathFrom(jumpableNodes, neowsLamentCounter);
+            bestPath = getBestPathFrom(jumpableNodes);
         }
         bestPath.pushToFront(node);
         return bestPath;
     }
 
-    public static MapPath getBestPathFrom(MapRoomNode node){
-        return getBestPathFrom(node, -1);
-    }
-
-    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes, int neowsLamentCounter){
+    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes){
         MapPath bestPath = new MapPath();
         for (MapRoomNode node : nodes) {
-            MapPath currentPath = getBestPathFrom(node, neowsLamentCounter);
-            if (bestPath.isEmpty() || currentPath.size() > bestPath.size() && neowsLamentCounter >= 0
-                    || (iteratedPathExceedsBestPath(bestPath, currentPath) && neowsLamentCounter == -1)) {
+            MapPath currentPath = getBestPathFrom(node);
+            if (bestPath.isEmpty() || iteratedPathExceedsBestPath(bestPath, currentPath)) {
                 bestPath = currentPath;
             }
         }
         return bestPath;
-    }
-
-    public static MapPath getBestPathFrom(ArrayList<MapRoomNode> nodes){
-        return getBestPathFrom(nodes, -1);
     }
 
     public static ArrayList<MapRoomNode> getStartingNodes() {

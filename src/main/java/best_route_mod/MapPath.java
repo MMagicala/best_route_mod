@@ -17,6 +17,11 @@ public class MapPath {
 
     /* Constructors */
 
+    // Make a copy of a MapPath instance
+    public MapPath(MapPath original){
+        this(original.path, original.roomCounts);
+    }
+
     // Create a MapPath with only one node
     public MapPath(MapRoomNode node){
         this.path = new ArrayList<>();
@@ -60,14 +65,6 @@ public class MapPath {
             edges.add(edge);
         }
         return edges;
-    }
-
-    public MapRoomNode last(){
-        return path.get(path.size()-1);
-    }
-
-    public int size(){
-        return path.size();
     }
 
     public boolean isEmpty(){
